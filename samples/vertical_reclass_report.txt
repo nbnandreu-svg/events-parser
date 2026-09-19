@@ -1,0 +1,57 @@
+Vertical reclassification report
+Updated: 2026-09-19 16:34 MSK
+Catalog meta: {"updated_at": "2026-09-19 16:33", "count": 2257}
+
+GOAL
+- Product catalog = IT / АПК / Пром only
+- Lifestyle / culture / art / religion / kids / entertainment → EXCLUDE
+- Soft formats (завтрак/ужин/нетворкинг/мастер-класс/…) must NOT default unknown → industry
+
+CHANGES IN CODE
+- ingest_round2.vertical_for: returns Optional[str]; None = drop from catalog
+- LIFESTYLE_RE (title-first; soft/timepad also scan description)
+- Expanded IT_RE (ИИ/ИТ/Positive Technologies/разработчик/S3/XML/…)
+- INDUSTRY_RE for real B2B signals (ВЭД, HR, производство, МСП, …)
+- APK_RE tightened: «поле» no longer matches «полезные»; «дачи» no longer matches «задачи»/«сдачи»
+- Explicit бизнес-завтрак/ужин without lifestyle → industry
+- Soft/timepad without keywords → exclude
+- Curated apk/it sources default to apk/it when keywords miss
+- ingest_timepad skips non-B2B; make_event returns None when vertical is None
+- Offline pass: reclass_verticals.py
+
+COUNTS (problem baseline → after)
+N: 3591 → 2257  (dropped non-B2B: 1334)
+
+Бизнес-завтрак:
+  before: n=91 industry=86 it=3 apk=2
+  after:  n=62 industry=45 it=17 apk=0
+  industry Δ: -41
+
+Бизнес-ужин:
+  before: n=35 industry=33 it=0 apk=2
+  after:  n=8 industry=7 it=1 apk=0
+  industry Δ: -26
+
+Круглый стол:
+  before: n=27 industry=23 it=2 apk=2
+  after:  n=18 industry=11 it=5 apk=2
+  industry Δ: -12
+
+All verticals after: {'apk': 670, 'industry': 1106, 'it': 481}
+
+DROPPED EXAMPLES (lifestyle / non-B2B)
+- «Книжный завтрак», арт-завтраки, библейский завтрак, завтрак с шампанским / астрологом
+- АРТ-УЖИНЫ (Шагал, Фрейд, Романовы, …), театральные/шеф-ужины, ужин в темноте
+- Детские/гончарные/акварельные мастер-классы, йога/хастл, будуар-нетворкинг
+- Psychoanalysis / megalith / painting roundtables
+
+KEPT EXAMPLES
+- IT: Positive Technologies breakfast, Нейрозавтрак/ИИ, ИТ-завтрак, S3 dinner, developer roundtables
+- Industry: ВЭД/платежи/HR/CRE/стартап-завтраки Сколково, clinic business dinners, металлообработка
+- APK: ветпалата roundtables; HoReCa/food expos stay apk via keywords/sources
+
+SUCCESS CHECKS
+- Breakfast/dinner industry count dropped sharply (86→45, 33→7)
+- Lifestyle art/book/bible breakfasts gone from catalog
+- Remaining industry breakfasts look B2B
+- IT/APK filled when titles warrant (IT breakfast 3→17)

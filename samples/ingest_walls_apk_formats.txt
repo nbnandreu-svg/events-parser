@@ -1,0 +1,6 @@
+AE theme-is-agroprom/selhoz: page title generic «мероприятия» (broken filter)
+AE type×agroprom breakfast/stol: non-APK cards only; client STRICT→0
+AE type calendars biznes-zavtrak/krugliy-stol: 56+14 parsed, strict APK=0
+TimePad agro keywords: breakfast STRICT=0; stol=2 (Нац. Ветеринарная Палата)
+Optional milknews/foodsmi/agroinvestor: no literal Бизнес-завтрак/Круглый стол
+HONEST WALL: АПК×(Бизнес-завтрак|Круглый стол)=2 <5 (strict title/desc only)

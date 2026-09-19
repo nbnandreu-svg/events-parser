@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.env.*
+*.token
+.timepad_token
+.secrets/
+samples/*.html
+samples/*.htm
+samples/*_events.html
+.DS_Store

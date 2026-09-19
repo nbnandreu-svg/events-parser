@@ -1,0 +1,40 @@
+Catalog repair report
+Updated: 2026-09-19 16:55 MSK
+EVENTS_META: {"updated_at": "2026-09-19 16:55 MSK", "count": 2266}
+
+STEPS (single-writer / file-lock):
+1. Backup → samples/events_upcoming_pre_repair_2748.json (N=2748)
+2. Offline reclass (reclass_verticals / vertical_for) — drop non-B2B lifestyle
+3. Merge samples/ingest_kudago_exponet_events.json (dedup by organizer_url) — already present, +0
+4. Re-fetch TimePad upcoming B2B-only (lifestyle skipped); merge dedup; ≤60 req/min
+5. Atomic write events_upcoming.json + events-data.js
+6. Final offline sweep of soft TimePad rows that only passed via API category signals
+
+Also: killed racing enrich_timepad_descriptions writer (PID held TIMEPAD_TOKEN);
+patched enrich_timepad_descriptions.py to update description by event id/URL only
+and to respect samples/CATALOG_WRITE_LOCK.
+
+N before: 2748
+N after reclass: 2251 (dropped lifestyle/non-B2B: 497)
+N after TimePad merge: 2274
+N final: 2266
+timepad: 143
+kudago: 1
+exponet: 20
+kudago+exponet: 21
+
+Verticals: {"apk": 667, "industry": 1119, "it": 480}
+
+Breakfast / dinner / roundtable by vertical:
+Бизнес-завтрак: n=62 {'industry': 44, 'it': 18}  (industry share 71.0%; was ~94% pre-repair)
+Бизнес-ужин: n=8 {'industry': 7, 'it': 1}
+Круглый стол: n=18 {'industry': 11, 'it': 5, 'apk': 2}
+
+Dropped lifestyle by type (top): Вебинар 293, Семинар 103, Нетворкинг 39, Мастер-класс 22, Митап 20, Бизнес-ужин 8, Круглый стол 7, Бизнес-завтрак 3
+Dropped lifestyle by source (top): timepad 392, all_events 63, kudabiz 28, edu_afisha 13
+
+Success checks:
+- one coherent B2B catalog (apk/it/industry only)
+- kudago+exponet kept (21)
+- TimePad B2B restored without lifestyle flood (143 vs collapsed 520 with lifestyle mix)
+- breakfast industry not ~90% (71.0%)

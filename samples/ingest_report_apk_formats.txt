@@ -1,0 +1,23 @@
+APK FORMATS INGEST REPORT 2026-09-19 20:58 Europe/Moscow
+STRICT: force vertical=apk only if title/desc matches агро|сельхоз|ферм|молоч|пищев|мясн|зерн|ветерин|комбикорм|винодел|аквакульт|птице|свиновод|…
+Do NOT apk: ИИ, предприниматели, партнёрские завтраки, недвижимость, ресторан/отель tech
+BEFORE: N≈2269 АПК×Бизнес-завтрак≈5 АПК×Круглый стол≈2 (incl. false apk breakfasts)
+AFTER:  N=2302 apk=911 АПК×Бизнес-завтрак=0 АПК×Круглый стол=2
+SUM breakfast+stol=2 (goal ≥5–15) — WALL
+write_catalog meta={'updated_at': '2026-09-19 20:58', 'count': 2302}; index.html NOT touched
+Городской завтрак ООН/ИИ → vertical=it
+
+SAMPLES apk breakfast: (none)
+SAMPLES apk stol:
+  2026-10-06 | Круглый стол с Национальной Ветеринарной Палатой
+  2026-10-15 | Круглый стол с Национальной Ветеринарной Палатой
+
+WALLS:
+  AE theme-is-agroprom/selhoz: page title generic «мероприятия» (broken filter)
+  AE type×agroprom breakfast/stol: non-APK cards only; client STRICT→0
+  AE type calendars biznes-zavtrak/krugliy-stol: 56+14 parsed, strict APK=0
+  TimePad agro keywords: breakfast STRICT=0; stol=2 (Нац. Ветеринарная Палата)
+  Optional milknews/foodsmi/agroinvestor: no literal Бизнес-завтрак/Круглый стол
+  HONEST WALL: АПК×(Бизнес-завтрак|Круглый стол)=2 <5 (strict title/desc only)
+
+Files ready for CopyFromBox: events_upcoming.json, events-data.js, samples/ingest_report_apk_formats.txt

@@ -1,0 +1,1759 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Календарь мероприятий</title>
+<style>
+  :root {
+    --bg: #F4F6F8;
+    --surface: #FFFFFF;
+    --text: #0F172A;
+    --muted: #64748B;
+    --border: #E2E8F0;
+    --accent: #2563EB;
+    --accent-hover: #1D4ED8;
+    --accent-soft: #EFF6FF;
+    --it: #2563EB;
+    --apk: #16A34A;
+    --industry: #B45309;
+    --confirmed: #15803D;
+    --tentative: #CA8A04;
+    --tbd: #64748B;
+    --broken: #DC2626;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --shadow: 0 1px 2px rgba(15,23,42,.04), 0 1px 3px rgba(15,23,42,.06);
+    --shadow-md: 0 4px 14px rgba(15,23,42,.08);
+    --shadow-lg: 0 12px 32px rgba(15,23,42,.14);
+    --shadow-drawer: 0 8px 40px rgba(15,23,42,.18);
+    --control-h: 38px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.45;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  button, select, input { font: inherit; color: inherit; }
+  a { color: var(--accent); }
+
+  .app {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 20px 56px;
+  }
+
+  /* Sticky product header */
+  .app-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    margin: 0 -20px 20px;
+    padding: 14px 20px;
+    background: rgba(255,255,255,.92);
+    backdrop-filter: saturate(1.2) blur(10px);
+    -webkit-backdrop-filter: saturate(1.2) blur(10px);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 1px 0 rgba(255,255,255,.6), 0 4px 16px rgba(15,23,42,.04);
+  }
+  .app-header__inner {
+    max-width: 1120px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .logo-mark {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+    background: linear-gradient(145deg, #3B82F6 0%, #1D4ED8 100%);
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(37,99,235,.35);
+  }
+  .app-header__text { min-width: 0; }
+  .app-header h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    color: var(--text);
+  }
+  .app-header .subtitle {
+    margin: 3px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.35;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .app-header .subtitle #header-count {
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  /* FilterBar — elevated card */
+
+  /* Region scope */
+
+  #chips-type { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .chip-type {
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .14s, color .14s, border-color .14s, box-shadow .14s;
+  }
+  .chip-type.is-active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    box-shadow: 0 1px 2px rgba(37,99,235,.25);
+  }
+
+  #chips-region { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .chip-region {
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .14s, color .14s, border-color .14s, box-shadow .14s;
+  }
+  .chip-region.is-active {
+    background: var(--text);
+    color: #fff;
+    border-color: var(--text);
+    box-shadow: 0 1px 2px rgba(15,23,42,.12);
+  }
+
+  #filter-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    box-shadow: var(--shadow-md);
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-end;
+  }
+  .filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+  }
+  .filter-field > span,
+  .filter-label {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+  .filter-field select,
+  .filter-field input[type="date"] {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0 12px;
+    background: #fff;
+    height: var(--control-h);
+    min-height: var(--control-h);
+    min-width: 140px;
+    transition: border-color .12s, box-shadow .12s;
+  }
+  .filter-field select:hover,
+  .filter-field input[type="date"]:hover {
+    border-color: #CBD5E1;
+  }
+  .filter-field select:focus,
+  .filter-field input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(37,99,235,.15);
+  }
+  #filter-city { min-width: 180px; }
+  #filter-country { min-width: 140px; }
+  #filter-type { min-width: 220px; font-weight: 500; }
+
+  /* ChipVertical — pill chips */
+  #chips-vertical {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .chip-vertical {
+    border: 1px solid var(--border);
+    background: #fff;
+    border-radius: 999px;
+    padding: 7px 16px;
+    height: 34px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text);
+    transition: background .14s, color .14s, border-color .14s, box-shadow .14s, transform .12s;
+  }
+  .chip-vertical:hover {
+    border-color: #CBD5E1;
+    background: #F8FAFC;
+  }
+  .chip-vertical.is-active {
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 2px 8px rgba(15,23,42,.12);
+  }
+  .chip-vertical[data-vertical="all"].is-active { background: var(--accent); }
+  .chip-vertical[data-vertical="it"].is-active { background: var(--it); }
+  .chip-vertical[data-vertical="apk"].is-active { background: var(--apk); }
+  .chip-vertical[data-vertical="industry"].is-active { background: var(--industry); }
+  .chip-count {
+    display: inline-block;
+    margin-left: 4px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: rgba(15,23,42,.08);
+    font-size: 12px;
+    font-weight: 650;
+    min-width: 1.5em;
+    text-align: center;
+  }
+  .chip-vertical.is-active .chip-count { background: rgba(255,255,255,.25); }
+  .app-header .subtitle strong { color: var(--text); font-weight: 700; }
+
+
+  .toggle-confirmed {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    border-radius: var(--radius-sm);
+    background: #F1F5F9;
+    height: var(--control-h);
+    min-height: var(--control-h);
+    cursor: pointer;
+    user-select: none;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    border: 1px solid transparent;
+  }
+  .toggle-confirmed:hover { background: #E2E8F0; }
+  .toggle-confirmed input { accent-color: var(--accent); width: 16px; height: 16px; }
+
+  .btn {
+    border-radius: var(--radius-sm);
+    padding: 0 16px;
+    height: var(--control-h);
+    min-height: var(--control-h);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    border: 1px solid var(--border);
+    background: #fff;
+    transition: background .12s, border-color .12s, color .12s, box-shadow .12s, transform .1s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .btn:hover { background: #F8FAFC; border-color: #CBD5E1; }
+  .btn:active { transform: translateY(1px); }
+  .btn-ghost { background: #fff; }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    box-shadow: 0 1px 2px rgba(37,99,235,.25), 0 4px 12px rgba(37,99,235,.2);
+  }
+  .btn-primary:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+    box-shadow: 0 2px 8px rgba(37,99,235,.35);
+  }
+  .btn-icon {
+    width: var(--control-h);
+    padding: 0;
+    font-size: 16px;
+  }
+
+  /* Tabs */
+  #tabs {
+    display: flex;
+    gap: 2px;
+    border-bottom: 1px solid var(--border);
+    margin: 4px 0 14px;
+    background: transparent;
+  }
+  .tab {
+    border: none;
+    background: transparent;
+    padding: 11px 18px;
+    cursor: pointer;
+    font-weight: 650;
+    font-size: 14px;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    border-radius: 8px 8px 0 0;
+    transition: color .12s, background .12s;
+  }
+  .tab.is-active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab:hover:not(.is-active) { color: var(--text); background: rgba(15,23,42,.03); }
+
+  #meta-actions { margin-left: auto; }
+  #meta-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 12px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  #meta-count { font-weight: 650; color: var(--text); font-size: 14px; }
+  #meta-hint { color: var(--muted); font-size: 12.5px; max-width: 420px; }
+
+  .panel { display: none; }
+  .panel.is-active { display: block; }
+
+  /* EventRow — real product cards */
+  #event-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .event-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    display: grid;
+    gap: 7px;
+    transition: border-color .15s, box-shadow .15s, transform .15s;
+  }
+  .event-row:hover {
+    border-color: #93C5FD;
+    box-shadow: var(--shadow-md), 0 0 0 1px rgba(37,99,235,.08);
+    transform: translateY(-1px);
+  }
+  .event-row:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .event-row__title {
+    font-size: 16px;
+    font-weight: 650;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+  .event-row__meta {
+    color: var(--muted);
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .event-row__sutevka {
+    color: #94A3B8;
+    font-size: 12px;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .badge {
+    font-size: 11px;
+    font-weight: 650;
+    border-radius: 999px;
+    padding: 3px 9px;
+    color: #fff;
+    letter-spacing: 0.01em;
+    line-height: 1.3;
+  }
+  .badge-vertical.is-it { background: var(--it); }
+  .badge-vertical.is-apk { background: var(--apk); }
+  .badge-vertical.is-industry { background: var(--industry); }
+  .badge-status.is-confirmed { background: var(--confirmed); }
+  .badge-status.is-tentative { background: var(--tentative); }
+  .badge-status.is-tbd { background: var(--tbd); }
+  .badge-status.is-link_broken { background: var(--broken); }
+
+  #list-more-wrap {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  #btn-show-more {
+    min-width: 200px;
+    box-shadow: var(--shadow);
+  }
+
+  .empty-state {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 48px 28px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.55;
+    box-shadow: var(--shadow);
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .empty-state[hidden] { display: none !important; }
+
+  /* Calendar */
+  .cal-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    box-shadow: var(--shadow);
+  }
+  #cal-month-label {
+    font-size: 16px;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    text-transform: capitalize;
+    color: var(--text);
+  }
+  #cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .cal-dow {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 650;
+    padding: 6px 4px;
+    text-transform: lowercase;
+    letter-spacing: 0.02em;
+  }
+  .day-cell {
+    min-height: 96px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px;
+    font-size: 12px;
+    cursor: default;
+    transition: border-color .12s, background .12s, box-shadow .12s;
+    box-shadow: var(--shadow);
+  }
+  .day-cell.is-empty-pad {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    min-height: 0;
+  }
+  .day-cell.has-events {
+    cursor: pointer;
+    background: var(--accent-soft);
+    border-color: #BFDBFE;
+  }
+  .day-cell.has-events:hover {
+    border-color: #60A5FA;
+    box-shadow: 0 4px 12px rgba(37,99,235,.12);
+  }
+  .day-cell.is-today {
+    box-shadow: inset 0 0 0 2px var(--accent), var(--shadow);
+  }
+  .day-cell.is-today.has-events {
+    box-shadow: inset 0 0 0 2px var(--accent), 0 4px 12px rgba(37,99,235,.1);
+  }
+  .day-cell__num {
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 5px;
+    color: var(--text);
+  }
+  .day-cell.is-today .day-cell__num { color: var(--accent); }
+  .day-cell__item {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 3px;
+    padding: 2px 6px;
+    border-radius: 5px;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 550;
+    line-height: 1.35;
+    max-height: calc(1.35em + 4px);
+  }
+  .day-cell__item.is-it { background: var(--it); }
+  .day-cell__item.is-apk { background: var(--apk); }
+  .day-cell__item.is-industry { background: var(--industry); }
+  .day-cell__more {
+    display: inline-block;
+    margin-top: 4px;
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 11px;
+    cursor: pointer;
+    padding: 1px 4px;
+    border-radius: 4px;
+    background: rgba(37,99,235,.08);
+  }
+  .day-cell__more:hover { background: rgba(37,99,235,.16); text-decoration: none; }
+  .cal-toolbar__center {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  #btn-cal-today {
+    font-size: 13px;
+    border-color: #BFDBFE;
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+  #btn-cal-today:hover {
+    background: #DBEAFE;
+    border-color: #93C5FD;
+  }
+
+  /* Drawer — wider, clearer hierarchy */
+  #drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.42);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .18s;
+    z-index: 40;
+  }
+  #drawer-overlay.is-open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  #event-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: min(460px, 100vw);
+    height: 100vh;
+    background: var(--surface);
+    box-shadow: var(--shadow-drawer);
+    z-index: 50;
+    transform: translateX(100%);
+    transition: transform .22s cubic-bezier(.22,1,.36,1);
+    display: flex;
+    flex-direction: column;
+  }
+  #event-drawer.is-open { transform: translateX(0); }
+  .drawer-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #F8FAFC 0%, #fff 100%);
+  }
+  .drawer-header h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 650;
+    line-height: 1.3;
+    letter-spacing: -0.015em;
+    color: var(--text);
+  }
+  .drawer-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .drawer-field {
+    display: grid;
+    gap: 4px;
+  }
+  .drawer-field__label {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .drawer-field__value {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .sutevka {
+    background: #F1F5F9;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    color: var(--text);
+    line-height: 1.55;
+  }
+  .sutevka__label {
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #334155;
+    letter-spacing: 0.02em;
+  }
+  .sutevka__text {
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 14px;
+    color: #334155;
+  }
+  .sutevka__text.is-clamped {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 6;
+    line-clamp: 6;
+    overflow: hidden;
+  }
+  .sutevka__more {
+    margin-top: 8px;
+    border: none;
+    background: transparent;
+    color: var(--accent);
+    font-weight: 650;
+    font-size: 13px;
+    padding: 0;
+    cursor: pointer;
+  }
+  .sutevka__more:hover { text-decoration: underline; }
+  .sutevka.is-loading .sutevka__text {
+    color: var(--muted);
+    font-style: italic;
+  }
+  .sutevka.is-empty {
+    background: #F8FAFC;
+    border-color: var(--border);
+    color: var(--muted);
+  }
+  .sutevka.is-empty .sutevka__label { color: var(--muted); }
+  .sutevka.is-empty .sutevka__text { color: var(--muted); }
+  .drawer-footer {
+    padding: 14px 20px 20px;
+    border-top: 1px solid var(--border);
+    background: #fff;
+  }
+  .drawer-footer .btn-primary {
+    width: 100%;
+    text-align: center;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+    font-size: 14px;
+    border-radius: 10px;
+  }
+  .drawer-footer .btn-primary.is-disabled {
+    pointer-events: none;
+    opacity: 0.5;
+    background: var(--muted);
+    border-color: var(--muted);
+    box-shadow: none;
+  }
+
+  /* Toast */
+  #toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #0F172A;
+    color: #fff;
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s, transform .2s;
+    z-index: 60;
+    box-shadow: 0 10px 28px rgba(15,23,42,.28);
+  }
+  #toast.is-visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  #toast.is-error { background: #7F1D1D; }
+  .btn.is-loading { opacity: .75; pointer-events: none; }
+
+  @media (max-width: 720px) {
+    .app { padding: 0 12px 40px; }
+    .app-header { margin: 0 -12px 16px; padding: 12px; }
+    .app-header h1 { font-size: 18px; }
+    .logo-mark { width: 36px; height: 36px; font-size: 16px; border-radius: 10px; }
+    #filter-bar { padding: 12px; border-radius: var(--radius-md); }
+    .filter-field select,
+    .filter-field input[type="date"],
+    #filter-city, #filter-country, #filter-type {
+      min-width: 0;
+      width: 100%;
+    }
+    .filter-field { flex: 1 1 calc(50% - 8px); }
+    .filter-field.is-full { flex: 1 1 100%; }
+    .day-cell { min-height: 72px; padding: 5px; }
+    .day-cell__item { font-size: 10px; }
+    #event-drawer { width: 100vw; }
+    .event-row { padding: 12px 14px; }
+    .event-row__title { font-size: 15px; }
+    .empty-state { padding: 36px 20px; }
+  }
+</style>
+
+<script src="./events-data.js"></script>
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <div class="app-header__inner">
+        <div class="logo-mark" aria-hidden="true">К</div>
+        <div class="app-header__text">
+          <h1>Календарь мероприятий</h1>
+          <p class="subtitle" id="header-stats">
+            IT · <strong id="stat-it">0</strong>
+            · АПК · <strong id="stat-apk">0</strong>
+            · Промышленность · <strong id="stat-industry">0</strong>
+            · Σ <strong id="stat-sum">0</strong>
+            · в каталоге <strong id="header-count">0</strong>
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <section id="filter-bar" aria-label="Фильтры">
+      <div class="filter-row" id="chips-vertical" role="group" aria-label="Вертикаль">
+        <span class="filter-label">Вертикаль</span>
+        <button type="button" class="chip-vertical is-active" data-vertical="all" id="chip-all">Все <span class="chip-count" id="chip-count-all">0</span></button>
+        <button type="button" class="chip-vertical" data-vertical="it" id="chip-it">IT <span class="chip-count" id="chip-count-it">0</span></button>
+        <button type="button" class="chip-vertical" data-vertical="apk" id="chip-apk">АПК <span class="chip-count" id="chip-count-apk">0</span></button>
+        <button type="button" class="chip-vertical" data-vertical="industry" id="chip-industry">Промышленность <span class="chip-count" id="chip-count-industry">0</span></button>
+      </div>
+
+      <div class="filter-row" id="chips-region" role="group" aria-label="Регион">
+        <span class="filter-label">Регион</span>
+        <button type="button" class="chip-region is-active" data-region="cis" id="chip-region-cis" title="Россия и СНГ">РФ и СНГ</button>
+        <button type="button" class="chip-region" data-region="all" id="chip-region-all">Все страны</button>
+      </div>
+
+      <div class="filter-row">
+        <label class="filter-field" for="filter-city">
+          <span>Город</span>
+          <select id="filter-city"><option value="">Все города</option></select>
+        </label>
+        <label class="filter-field" for="filter-country">
+          <span>Страна</span>
+          <select id="filter-country"><option value="">Все страны</option></select>
+        </label>
+        <label class="filter-field" for="filter-type">
+          <span>Тип мероприятия</span>
+          <select id="filter-type" aria-label="Тип мероприятия">
+            <option value="">Все типы</option>
+          </select>
+        </label>
+        <label class="filter-field" for="filter-from">
+          <span>С</span>
+          <input type="date" id="filter-from" />
+        </label>
+        <label class="filter-field" for="filter-to">
+          <span>По</span>
+          <input type="date" id="filter-to" />
+        </label>
+        <label class="toggle-confirmed" for="filter-confirmed-only">
+          <input type="checkbox" id="filter-confirmed-only" />
+          <span>Только с подтверждённой датой</span>
+        </label>
+        <button type="button" class="btn btn-ghost" id="btn-reset">Сбросить</button>
+        <button type="button" class="btn btn-primary" id="btn-refresh" title="Подтянуть новые мероприятия из источников">Обновить</button>
+      </div>
+    </section>
+
+    <nav id="tabs" role="tablist" aria-label="Разделы">
+      <button type="button" class="tab is-active" role="tab" id="tab-list" data-tab="list" aria-selected="true">Мероприятия</button>
+      <button type="button" class="tab" role="tab" id="tab-cal" data-tab="cal" aria-selected="false">Календарь</button>
+    </nav>
+
+    <div id="meta-bar">
+      <div id="meta-count">Найдено 0</div>
+      <div id="meta-actions">
+        <button type="button" class="btn btn-ghost" id="btn-export-excel" title="Выгрузить текущую выборку в Excel (.xls)">Скачать Excel</button>
+      </div>
+      <div id="meta-hint"></div>
+    </div>
+
+    <section id="panel-list" class="panel is-active" role="tabpanel" aria-labelledby="tab-list">
+      <div id="event-list"></div>
+      <div id="list-empty" class="empty-state" hidden></div>
+      <div id="list-more-wrap" hidden>
+        <button type="button" class="btn btn-ghost" id="btn-show-more">Показать ещё</button>
+      </div>
+    </section>
+
+    <section id="panel-cal" class="panel" role="tabpanel" aria-labelledby="tab-cal">
+      <div class="cal-toolbar">
+        <button type="button" class="btn btn-icon" id="btn-cal-prev" aria-label="Предыдущий месяц">←</button>
+        <div class="cal-toolbar__center">
+          <div id="cal-month-label"></div>
+          <button type="button" class="btn btn-ghost" id="btn-cal-today">Сегодня</button>
+        </div>
+        <button type="button" class="btn btn-icon" id="btn-cal-next" aria-label="Следующий месяц">→</button>
+      </div>
+      <div id="cal-grid"></div>
+      <div id="month-empty" class="empty-state" hidden style="margin-top:12px">
+        В этом месяце пусто. Откройте другой месяц или вкладку Мероприятия.
+      </div>
+    </section>
+  </div>
+
+  <div id="drawer-overlay" hidden></div>
+  <aside id="event-drawer" aria-hidden="true" aria-labelledby="drawer-title">
+    <div class="drawer-header">
+      <h2 id="drawer-title"></h2>
+      <button type="button" class="btn btn-icon" id="btn-drawer-close" aria-label="Закрыть">✕</button>
+    </div>
+    <div class="drawer-body">
+      <div class="badges" id="drawer-badges"></div>
+      <div class="drawer-field">
+        <div class="drawer-field__label">Когда</div>
+        <div class="drawer-field__value" id="drawer-when"></div>
+      </div>
+      <div class="drawer-field">
+        <div class="drawer-field__label">Где</div>
+        <div class="drawer-field__value" id="drawer-where"></div>
+      </div>
+      <div class="drawer-field">
+        <div class="drawer-field__label">Тип</div>
+        <div class="drawer-field__value" id="drawer-type"></div>
+      </div>
+      <div class="drawer-field">
+        <div class="drawer-field__label">Вертикаль</div>
+        <div class="drawer-field__value" id="drawer-vertical"></div>
+      </div>
+      <div class="sutevka" id="drawer-sutevka-block">
+        <div class="sutevka__label">О мероприятии</div>
+        <div class="sutevka__text" id="drawer-sutevka"></div>
+        <button type="button" class="sutevka__more" id="btn-sutevka-more" hidden>Ещё</button>
+      </div>
+    </div>
+    <div class="drawer-footer">
+      <a class="btn btn-primary" id="drawer-cta" href="#" target="_blank" rel="noopener noreferrer">На сайт организатора</a>
+    </div>
+  </aside>
+
+  <div id="toast" role="status" aria-live="polite">Каталог обновлён</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var PAGE_SIZE = 50;
+  var MONTH_NAMES = null;
+
+  var state = {
+    events: [],
+    vertical: "all",
+    region: "cis",
+    enrichAvailable: true,
+    tab: "list",
+    month: null,
+    page: 1,
+    dayFilter: null
+  };
+
+  function $(id) { return document.getElementById(id); }
+
+  function todayISO() {
+    var d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return toISO(d);
+  }
+
+  function toISO(d) {
+    var y = d.getFullYear();
+    var m = String(d.getMonth() + 1).padStart(2, "0");
+    var day = String(d.getDate()).padStart(2, "0");
+    return y + "-" + m + "-" + day;
+  }
+
+  function parseISO(iso) {
+    if (!iso) return null;
+    var p = iso.split("-").map(Number);
+    return new Date(p[0], p[1] - 1, p[2]);
+  }
+
+  function fmtDate(iso) {
+    var d = parseISO(iso);
+    if (!d) return "—";
+    return d.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
+  }
+
+  function verticalLabel(v) {
+    return ({ it: "IT", apk: "АПК", industry: "Промышленность" })[v] || v;
+  }
+
+  function statusLabel(s) {
+    return ({
+      confirmed: "Дата подтверждена",
+      tentative: "Дата ориентировочная",
+      tbd: "Дата уточняется",
+      link_broken: "Ссылка недоступна"
+    })[s] || s;
+  }
+
+  function escapeHtml(str) {
+    return String(str == null ? "" : str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+
+  function isRealSummary(text, title) {
+    if (!text) return false;
+    var s = String(text).trim();
+    if (s.length < 120) return false;
+    // обрезанный ingest: «...», «...», заканчивается на ,...
+    if (/(\.\.\.|…|\,\.\.\.)\s*$/.test(s)) return false;
+    var norm = function (x) {
+      return String(x || "").toLowerCase().replace(/[^a-zа-яё0-9]+/gi, " ").trim();
+    };
+    var nt = norm(title);
+    var ns = norm(s);
+    if (nt && (ns === nt || (ns.indexOf(nt) === 0 && ns.length < nt.length + 30))) return false;
+    if (/^(межрегиональная|международная|сельскохозяйственная)\s+выставка\.?$/i.test(s.trim())) return false;
+    return true;
+  }
+
+
+  function displayTitle(e) {
+    var t = (e && e.title != null) ? String(e.title) : "";
+    t = t.replace(/\uFFFD/g, "").replace(/\?{2,}/g, "").trim();
+    // if mostly garbage / empty after strip
+    if (!t || /^[\s\-–—_|]+$/.test(t) || (t.replace(/[^\u0400-\u04FFa-zA-Z0-9]/g, "").length < 3 && /\d{4}/.test(String(e.title||"")))) {
+      var year = (String(e.title || "").match(/20\d{2}/) || [])[0];
+      return (e.type ? e.type + " " : "Мероприятие ") + (year || "").trim();
+    }
+    return t;
+  }
+
+  function eventSummary(e) {
+    if (!e) return "";
+    var keys = ["summary", "description", "desc", "about", "text"];
+    var best = "";
+    for (var i = 0; i < keys.length; i++) {
+      var v = e[keys[i]];
+      if (v == null) continue;
+      var s = String(v).trim();
+      if (!s || s === "—" || s === "-") continue;
+      if (s.length > best.length) best = s;
+    }
+    return best;
+  }
+
+  var EMPTY_SUMMARY = "Краткого описания пока нет. Откройте сайт организатора.";
+  var LOADING_SUMMARY = "Загружаю описание…";
+
+  function whereLine(e) {
+    var parts = [];
+    if (e.place && e.place !== "—" && e.place !== e.city) parts.push(e.place);
+    if (e.city && e.city.trim()) parts.push(e.city);
+    else parts.push("Без города");
+    if (e.country) parts.push(e.country);
+    return parts.join(", ");
+  }
+
+  function loadEvents() {
+    var raw = (typeof window !== "undefined" && window.EVENTS) ? window.EVENTS : [];
+    state.events = Array.isArray(raw) ? raw.slice() : [];
+  }
+
+  function reloadEventsData() {
+    return new Promise(function (resolve, reject) {
+      var s = document.createElement("script");
+      s.src = "events-data.js?t=" + Date.now();
+      s.onload = function () {
+        loadEvents();
+        resolve(window.EVENTS_META || {});
+      };
+      s.onerror = function () { reject(new Error("events-data.js")); };
+      document.head.appendChild(s);
+    });
+  }
+
+
+  var TYPE_ORDER = ["Выставка", "День поля", "Форум", "Конференция", "Семинар", "Конгресс", "Бизнес-завтрак", "Круглый стол", "Хакатон", "Вебинар", "Обучающий семинар", "Другое"];
+  function sortedTypes(arr) {
+    var vals = uniqueSorted(arr);
+    var rank = {};
+    TYPE_ORDER.forEach(function (t, i) { rank[t] = i; });
+    return vals.sort(function (a, b) {
+      var ra = rank.hasOwnProperty(a) ? rank[a] : 1000;
+      var rb = rank.hasOwnProperty(b) ? rank[b] : 1000;
+      if (ra !== rb) return ra - rb;
+      return a.localeCompare(b, "ru");
+    });
+  }
+
+  function uniqueSorted(arr) {
+    var set = {};
+    arr.forEach(function (v) {
+      if (v != null && String(v).trim() !== "") set[String(v)] = true;
+    });
+    return Object.keys(set).sort(function (a, b) {
+      return a.localeCompare(b, "ru");
+    });
+  }
+
+  function fillSelect(selectEl, values, allLabel) {
+    var current = selectEl.value;
+    selectEl.innerHTML = "";
+    var optAll = document.createElement("option");
+    optAll.value = "";
+    optAll.textContent = allLabel;
+    selectEl.appendChild(optAll);
+    values.forEach(function (v) {
+      var o = document.createElement("option");
+      o.value = v;
+      o.textContent = v;
+      selectEl.appendChild(o);
+    });
+    if (values.indexOf(current) !== -1) selectEl.value = current;
+    else selectEl.value = "";
+  }
+
+  function populateFilters() {
+    fillSelect($("filter-city"), uniqueSorted(state.events.map(function (e) { return e.city; })), "Все города");
+    fillSelect($("filter-country"), uniqueSorted(state.events.map(function (e) { return e.country; })), "Все страны");
+    fillSelect($("filter-type"), sortedTypes(state.events.map(function (e) { return e.type; })), "Все типы");
+  }
+
+  function hasActiveFilters() {
+    return (
+      state.vertical !== "all" ||
+      state.region !== "cis" ||
+      $("filter-city").value ||
+      $("filter-country").value ||
+      $("filter-type").value ||
+      $("filter-from").value ||
+      $("filter-to").value ||
+      $("filter-confirmed-only").checked
+    );
+  }
+
+
+  var CIS_COUNTRIES = {
+    "Россия": 1, "Беларусь": 1, "Казахстан": 1, "Узбекистан": 1,
+    "Армения": 1, "Азербайджан": 1, "Кыргызстан": 1, "Киргизия": 1,
+    "Молдова": 1, "Молдавия": 1, "Таджикистан": 1, "Туркменистан": 1, "Туркмения": 1
+  };
+
+  function isCisCountry(c) {
+    if (!c || !String(c).trim()) return false; // empty → not in default CIS chip
+    return !!CIS_COUNTRIES[String(c).trim()];
+  }
+
+
+  function normalizeType(e) {
+    var raw = String((e && e.type) || "").toLowerCase();
+    var title = String((e && e.title) || "").toLowerCase();
+    var blob = raw + " " + title;
+    if (/день\s*поля|полевая|field\s*day/.test(blob)) return "день поля";
+    if (/выставк|exhibition|expo\b/.test(blob)) return "выставка";
+    if (/конгресс|congress/.test(blob)) return "конгресс";
+    if (/конферен/.test(blob) || /conference/.test(blob)) return "конференция";
+    if (/форум|forum/.test(blob)) return "форум";
+    if (/семинар|seminar|тренинг|вебинар|митап|мастер/.test(blob)) return "семинар";
+    if (/прочее|другое|other/.test(raw)) return "прочее";
+    // raw exact dictionary
+    if (raw === "выставка" || raw === "день поля" || raw === "форум" || raw === "конференция" || raw === "семинар" || raw === "конгресс") return raw;
+    return "прочее";
+  }
+
+  function filtered() {
+    var today = todayISO();
+    var city = $("filter-city").value;
+    var country = $("filter-country").value;
+    var type = $("filter-type").value;
+    var from = $("filter-from").value;
+    var to = $("filter-to").value;
+    var onlyConfirmed = $("filter-confirmed-only").checked;
+
+    return state.events.filter(function (e) {
+      if (!e.date || e.date < today) return false;
+      if (state.vertical !== "all" && e.vertical !== state.vertical) return false;
+      if (state.region === "cis" && !isCisCountry(e.country)) return false;
+      if (city && e.city !== city) return false;
+      if (country && e.country !== country) return false;
+      if (type && e.type !== type) return false;
+      if (from && e.date < from) return false;
+      if (to && e.date > to) return false;
+      if (onlyConfirmed && e.status !== "confirmed") return false;
+      return true;
+    }).sort(function (a, b) {
+      var c = a.date.localeCompare(b.date);
+      if (c !== 0) return c;
+      return String(a.title || "").localeCompare(String(b.title || ""), "ru");
+    });
+  }
+
+  function renderBadges(e) {
+    var html = '<span class="badge badge-vertical is-' + escapeHtml(e.vertical) + '">' +
+      escapeHtml(verticalLabel(e.vertical)) + "</span>";
+    html += '<span class="badge badge-status is-' + escapeHtml(e.status || "tbd") + '">' +
+      escapeHtml(statusLabel(e.status || "tbd")) + "</span>";
+    if (e.linkBroken || e.status === "link_broken") {
+      html += '<span class="badge badge-status is-link_broken">Ссылка недоступна</span>';
+    }
+    return html;
+  }
+
+  function renderList() {
+    var items = filtered();
+    var total = items.length;
+    var limit = state.page * PAGE_SIZE;
+    var visible = items.slice(0, limit);
+
+    if (!total) {
+      $("meta-count").textContent = "Найдено 0";
+      $("meta-hint").textContent = "";
+    } else if (visible.length < total) {
+      $("meta-count").textContent = "Найдено " + total + " · показано " + visible.length;
+      $("meta-hint").textContent = "Листайте вниз или нажмите «Показать ещё» — в счётчике все по фильтрам, на экране порция.";
+    } else {
+      $("meta-count").textContent = "Найдено " + total;
+      $("meta-hint").textContent = "Все найденные на экране";
+    }
+
+    var list = $("event-list");
+    var empty = $("list-empty");
+    var moreWrap = $("list-more-wrap");
+
+    list.innerHTML = "";
+
+    if (!total) {
+      empty.hidden = false;
+      empty.textContent = hasActiveFilters()
+        ? "По таким фильтрам список пуст. Расширьте город, тип или даты."
+        : "Пока в каталоге пусто. Нажмите «Обновить» или загляните позже.";
+      moreWrap.hidden = true;
+      return;
+    }
+
+    empty.hidden = true;
+
+    visible.forEach(function (e) {
+      var row = document.createElement("article");
+      row.className = "event-row";
+      row.tabIndex = 0;
+      row.dataset.id = String(e.id);
+      row.setAttribute("role", "button");
+      var sum = eventSummary(e);
+      row.innerHTML =
+        '<div class="badges">' + renderBadges(e) + "</div>" +
+        '<div class="event-row__title">' + escapeHtml(displayTitle(e)) + "</div>" +
+        '<div class="event-row__meta">' +
+          escapeHtml(e.type || "—") + " · " +
+          escapeHtml((e.city && e.city.trim()) || "Без города") + " · " +
+          escapeHtml(fmtDate(e.date)) +
+        "</div>" +
+        (sum
+          ? (isRealSummary(sum, e.title) ? '<div class="event-row__sutevka">' + escapeHtml(sum) + "</div>" : '')
+          : "");
+      row.addEventListener("click", function () { openDrawer(e); });
+      row.addEventListener("keydown", function (ev) {
+        if (ev.key === "Enter" || ev.key === " ") {
+          ev.preventDefault();
+          openDrawer(e);
+        }
+      });
+      list.appendChild(row);
+    });
+
+    if (visible.length < total) {
+      moreWrap.hidden = false;
+      $("btn-show-more").textContent = "Показать ещё (" + Math.min(PAGE_SIZE, total - visible.length) + ")";
+    } else {
+      moreWrap.hidden = true;
+    }
+  }
+
+  function renderCalendar() {
+    var y = state.month.getFullYear();
+    var m = state.month.getMonth();
+    var label = state.month.toLocaleDateString("ru-RU", { month: "long", year: "numeric" });
+    if (label) label = label.charAt(0).toUpperCase() + label.slice(1);
+    $("cal-month-label").textContent = label;
+
+    var first = new Date(y, m, 1);
+    var startPad = (first.getDay() + 6) % 7;
+    var daysInMonth = new Date(y, m + 1, 0).getDate();
+    var items = filtered();
+    var byDay = {};
+    items.forEach(function (e) {
+      var p = e.date.split("-").map(Number);
+      if (p[0] === y && p[1] - 1 === m) {
+        (byDay[p[2]] || (byDay[p[2]] = [])).push(e);
+      }
+    });
+
+    var grid = $("cal-grid");
+    grid.innerHTML = "";
+
+    ["пн", "вт", "ср", "чт", "пт", "сб", "вс"].forEach(function (d) {
+      var el = document.createElement("div");
+      el.className = "cal-dow";
+      el.textContent = d;
+      grid.appendChild(el);
+    });
+
+    for (var i = 0; i < startPad; i++) {
+      var pad = document.createElement("div");
+      pad.className = "day-cell is-empty-pad";
+      grid.appendChild(pad);
+    }
+
+    var today = todayISO();
+    var monthHas = Object.keys(byDay).length > 0;
+    $("month-empty").hidden = monthHas;
+    var inMonth = Object.keys(byDay).reduce(function (s, k) { return s + byDay[k].length; }, 0);
+    $("meta-count").textContent = "Найдено " + items.length + " · в этом месяце " + inMonth;
+    $("meta-hint").textContent = inMonth < items.length
+      ? "Сетка — только выбранный месяц; полный N по фильтрам в «Найдено»."
+      : "";
+
+    function goToDayList(dateIso) {
+      $("filter-from").value = dateIso;
+      $("filter-to").value = dateIso;
+      state.page = 1;
+      switchTab("list");
+      render();
+    }
+
+    for (var day = 1; day <= daysInMonth; day++) {
+      var iso = y + "-" + String(m + 1).padStart(2, "0") + "-" + String(day).padStart(2, "0");
+      var events = byDay[day] || [];
+      var cell = document.createElement("div");
+      cell.className = "day-cell" + (events.length ? " has-events" : "") + (iso === today ? " is-today" : "");
+      cell.dataset.date = iso;
+
+      var cellHtml = '<div class="day-cell__num">' + day + "</div>";
+      if (events.length) {
+        events.slice(0, 2).forEach(function (e) {
+          cellHtml += '<span class="day-cell__item is-' + escapeHtml(e.vertical) + '" title="' +
+            escapeHtml(displayTitle(e)) + '">' + escapeHtml(displayTitle(e)) + "</span>";
+        });
+        if (events.length > 2) {
+          cellHtml += '<span class="day-cell__more" data-more="1">+' + (events.length - 2) + "</span>";
+        }
+      }
+      cell.innerHTML = cellHtml;
+
+      if (events.length) {
+        cell.addEventListener("click", (function (dateIso) {
+          return function (ev) {
+            ev.preventDefault();
+            goToDayList(dateIso);
+          };
+        })(iso));
+      }
+      grid.appendChild(cell);
+    }
+  }
+
+  function updateHeaderCount() {
+    // Счётчики вертикалей — в рамках текущего региона (и дат/города/типа, но без чипа вертикали)
+    var today = todayISO();
+    var city = $("filter-city").value;
+    var country = $("filter-country").value;
+    var type = $("filter-type").value;
+    var from = $("filter-from").value;
+    var to = $("filter-to").value;
+    var onlyConfirmed = $("filter-confirmed-only") && $("filter-confirmed-only").checked;
+
+    var scoped = state.events.filter(function (e) {
+      if (!e.date || e.date < today) return false;
+      if (state.region === "cis" && !isCisCountry(e.country)) return false;
+      if (city && e.city !== city) return false;
+      if (country && e.country !== country) return false;
+      if (type && e.type !== type) return false;
+      if (from && e.date < from) return false;
+      if (to && e.date > to) return false;
+      if (onlyConfirmed && e.status !== "confirmed") return false;
+      return true;
+    });
+
+    var it = 0, apk = 0, industry = 0, other = 0;
+    scoped.forEach(function (e) {
+      if (e.vertical === "it") it++;
+      else if (e.vertical === "apk") apk++;
+      else if (e.vertical === "industry") industry++;
+      else other++;
+    });
+    var sum = it + apk + industry + other;
+    var all = state.events.length;
+
+    function setTxt(id, n) { var el = $(id); if (el) el.textContent = String(n); }
+    setTxt("stat-it", it);
+    setTxt("stat-apk", apk);
+    setTxt("stat-industry", industry);
+    setTxt("stat-sum", sum);
+    setTxt("header-count", all);
+    setTxt("chip-count-all", sum);
+    setTxt("chip-count-it", it);
+    setTxt("chip-count-apk", apk);
+    setTxt("chip-count-industry", industry);
+  }
+
+  function render() {
+    updateHeaderCount();
+    if (state.tab === "list") renderList();
+    else renderCalendar();
+  }
+
+  function switchTab(tab) {
+    state.tab = tab;
+    document.querySelectorAll("#tabs .tab").forEach(function (t) {
+      var on = t.dataset.tab === tab;
+      t.classList.toggle("is-active", on);
+      t.setAttribute("aria-selected", on ? "true" : "false");
+    });
+    $("panel-list").classList.toggle("is-active", tab === "list");
+    $("panel-cal").classList.toggle("is-active", tab === "cal");
+  }
+
+  function syncSutevkaMore(expanded) {
+    var textEl = $("drawer-sutevka");
+    var btn = $("btn-sutevka-more");
+    if (!btn || btn.hidden) return;
+    textEl.classList.toggle("is-clamped", !expanded);
+    btn.textContent = expanded ? "Свернуть" : "Ещё";
+    btn.dataset.expanded = expanded ? "1" : "0";
+  }
+
+
+  function requestEnrichSummary(e, block, textEl, moreBtn) {
+    if (!e || e.id == null) {
+      e = e || {};
+      e._enrichFailed = true;
+      block.classList.remove("is-loading");
+      block.classList.add("is-empty");
+      textEl.textContent = EMPTY_SUMMARY;
+      return;
+    }
+    if (e._enrichPromise) return;
+    var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 12000);
+    e._enrichPromise = fetch("/api/enrich?id=" + encodeURIComponent(e.id), {
+      method: "GET",
+      signal: ctrl ? ctrl.signal : undefined
+    }).then(function (r) {
+      if (r.status === 404) {
+        // эндпоинта нет — отключаем только тогда
+        state.enrichAvailable = false;
+        throw new Error("enrich endpoint 404");
+      }
+      if (!r.ok) throw new Error("enrich " + r.status);
+      return r.json();
+    }).then(function (data) {
+      clearTimeout(timer);
+      var text = (data && (data.summary || data.description)) || "";
+      if (data && data.ok === false && !text) {
+        e._enrichFailed = true;
+        e._enrichPromise = null;
+        block.classList.remove("is-loading");
+        block.classList.add("is-empty");
+        textEl.textContent = EMPTY_SUMMARY;
+        textEl.classList.remove("is-clamped");
+        moreBtn.hidden = true;
+        return;
+      }
+      if (isRealSummary(text, e.title)) {
+        e.summary = text;
+        e._enrichFailed = false;
+        block.classList.remove("is-loading", "is-empty");
+        textEl.textContent = text;
+        textEl.classList.remove("is-clamped");
+        moreBtn.dataset.expanded = "1";
+        moreBtn.textContent = "Свернуть";
+        moreBtn.hidden = text.length < 900;
+        updateHeaderCount();
+      } else {
+        e._enrichFailed = true;
+        e._enrichPromise = null;
+        block.classList.remove("is-loading");
+        block.classList.add("is-empty");
+        textEl.textContent = EMPTY_SUMMARY;
+        textEl.classList.remove("is-clamped");
+        moreBtn.hidden = true;
+      }
+    }).catch(function (err) {
+      clearTimeout(timer);
+      e._enrichFailed = true;
+      e._enrichPromise = null;
+      block.classList.remove("is-loading");
+      block.classList.add("is-empty");
+      textEl.textContent = EMPTY_SUMMARY;
+      textEl.classList.remove("is-clamped");
+      moreBtn.hidden = true;
+      // не трогаем state.enrichAvailable здесь — иначе один fail убивает enrich для всех
+    });
+  }
+
+
+  function openDrawer(e) {
+    $("drawer-title").textContent = displayTitle(e) || "Без названия";
+    $("drawer-badges").innerHTML = renderBadges(e);
+    $("drawer-when").textContent = fmtDate(e.date);
+    $("drawer-where").textContent = whereLine(e);
+    $("drawer-type").textContent = e.type || "—";
+    $("drawer-vertical").textContent = verticalLabel(e.vertical);
+
+    var block = $("drawer-sutevka-block");
+    var textEl = $("drawer-sutevka");
+    var moreBtn = $("btn-sutevka-more");
+    var sum = eventSummary(e);
+    var real = isRealSummary(sum, e.title);
+    block.classList.remove("is-loading");
+    if (real) {
+      block.classList.remove("is-empty", "is-loading");
+      textEl.textContent = sum;
+      // Полный текст по умолчанию — без clamp-ловушки
+      textEl.classList.remove("is-clamped");
+      moreBtn.dataset.expanded = "1";
+      moreBtn.textContent = "Свернуть";
+      // «Свернуть» только для очень длинных текстов
+      moreBtn.hidden = sum.length < 900;
+      if (!moreBtn.hidden) {
+        // start expanded; Свернуть → clamp
+      }
+    } else if (e._enrichFailed || !state.enrichAvailable) {
+      block.classList.add("is-empty");
+      textEl.textContent = EMPTY_SUMMARY;
+      textEl.classList.remove("is-clamped");
+      moreBtn.hidden = true;
+    } else {
+      // Нет настоящего summary — loading, пока enrich может ответить
+      block.classList.remove("is-empty");
+      block.classList.add("is-loading");
+      textEl.textContent = LOADING_SUMMARY;
+      textEl.classList.remove("is-clamped");
+      moreBtn.hidden = true;
+      requestEnrichSummary(e, block, textEl, moreBtn);
+    }
+
+    var cta = $("drawer-cta");
+    if (e.url) {
+      cta.href = e.url;
+      cta.classList.remove("is-disabled");
+      cta.removeAttribute("aria-disabled");
+    } else {
+      cta.href = "#";
+      cta.classList.add("is-disabled");
+      cta.setAttribute("aria-disabled", "true");
+    }
+
+    var overlay = $("drawer-overlay");
+    overlay.hidden = false;
+    requestAnimationFrame(function () {
+      overlay.classList.add("is-open");
+      $("event-drawer").classList.add("is-open");
+      $("event-drawer").setAttribute("aria-hidden", "false");
+    });
+  }
+
+  function closeDrawer() {
+    var overlay = $("drawer-overlay");
+    overlay.classList.remove("is-open");
+    $("event-drawer").classList.remove("is-open");
+    $("event-drawer").setAttribute("aria-hidden", "true");
+    setTimeout(function () { overlay.hidden = true; }, 200);
+  }
+
+  function showToast(msg, isError) {
+    var t = $("toast");
+    t.textContent = msg || "";
+    t.classList.toggle("is-error", !!isError);
+    t.classList.add("is-visible");
+    clearTimeout(showToast._timer);
+    showToast._timer = setTimeout(function () {
+      t.classList.remove("is-visible");
+      t.classList.remove("is-error");
+    }, 3200);
+  }
+
+  function resetFilters() {
+    state.vertical = "all";
+    state.region = "cis";
+    state.page = 1;
+    document.querySelectorAll("#chips-vertical .chip-vertical").forEach(function (b) {
+      b.classList.toggle("is-active", b.dataset.vertical === "all");
+    });
+    document.querySelectorAll("#chips-region .chip-region").forEach(function (b) {
+      b.classList.toggle("is-active", b.dataset.region === "cis");
+    });
+    $("filter-type").value = "";
+    $("filter-city").value = "";
+    $("filter-country").value = "";
+    $("filter-type").value = "";
+    $("filter-from").value = "";
+    $("filter-to").value = "";
+    $("filter-confirmed-only").checked = false;
+    render();
+  }
+
+
+  function csvEscape(v) {
+    var s = String(v == null ? "" : v);
+    if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }
+
+  function xmlEscape(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function exportExcel() {
+    var rows = filtered();
+    var headers = ["Название", "Дата начала", "Дата конца", "Город", "Страна", "Тип", "Вертикаль", "Площадка", "Краткое описание", "Ссылка"];
+    function cell(v) {
+      var s = String(v == null ? "" : v);
+      // Excel SpreadsheetML text cell
+      return '<Cell><Data ss:Type="String">' + xmlEscape(s) + "</Data></Cell>";
+    }
+    var body = rows.map(function (e) {
+      var vals = [
+        displayTitle(e),
+        e.date || "",
+        e.endDate || e.end_date || "",
+        e.city || "",
+        e.country || "",
+        e.type || "",
+        verticalLabel(e.vertical),
+        e.place || e.venue || "",
+        eventSummary(e),
+        e.url || e.link || ""
+      ];
+      return "<Row>" + vals.map(cell).join("") + "</Row>";
+    }).join("");
+    var headerRow = "<Row>" + headers.map(cell).join("") + "</Row>";
+    var xml =
+      '<?xml version="1.0"?>\n' +
+      '<?mso-application progid="Excel.Sheet"?>\n' +
+      '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"\n' +
+      ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n' +
+      "<Worksheet ss:Name=\"Мероприятия\">\n" +
+      "<Table>\n" + headerRow + body + "\n</Table>\n</Worksheet>\n</Workbook>";
+    var blob = new Blob([xml], { type: "application/vnd.ms-excel;charset=utf-8;" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "meropriyatiya_" + todayISO() + ".xls";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+    showToast("Выгружено " + rows.length + " строк в Excel (.xls)");
+  }
+
+
+  function bind() {
+    document.querySelectorAll("#chips-vertical .chip-vertical").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        document.querySelectorAll("#chips-vertical .chip-vertical").forEach(function (b) {
+          b.classList.remove("is-active");
+        });
+        btn.classList.add("is-active");
+        state.vertical = btn.dataset.vertical;
+        state.page = 1;
+        render();
+      });
+    });
+
+    document.querySelectorAll("#chips-region .chip-region").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        document.querySelectorAll("#chips-region .chip-region").forEach(function (b) {
+          b.classList.remove("is-active");
+        });
+        btn.classList.add("is-active");
+        state.region = btn.dataset.region;
+        state.page = 1;
+        render();
+      });
+    });
+
+    ["filter-city", "filter-country", "filter-type", "filter-from", "filter-to", "filter-confirmed-only"].forEach(function (id) {
+      $(id).addEventListener("change", function () {
+        state.page = 1;
+        render();
+      });
+    });
+
+    $("btn-reset").addEventListener("click", resetFilters);
+    $("btn-export-excel").addEventListener("click", exportExcel);
+
+    $("btn-refresh").addEventListener("click", function () {
+      var btn = $("btn-refresh");
+      btn.classList.add("is-loading");
+      btn.disabled = true;
+      btn.textContent = "Обновляю каталог…";
+      function finishOk(meta) {
+        populateFilters();
+        state.page = 1;
+        render();
+        var n = (meta && meta.count != null) ? meta.count : state.events.length;
+        var stamp = (meta && meta.updated_at) ? meta.updated_at : "";
+        if (stamp && stamp.indexOf("-") >= 0) {
+          // "YYYY-MM-DD HH:MM" → "ДД.ММ, ЧЧ:ММ"
+          var parts = stamp.split(/[ T]/);
+          var d = (parts[0] || "").split("-");
+          if (d.length === 3) stamp = d[2] + "." + d[1] + ", " + (parts[1] || "");
+        }
+        if (!stamp) {
+          var now = new Date();
+          stamp = now.toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+        }
+        showToast("Каталог обновлён · Найдено " + n + " · Обновлено: " + stamp, false);
+      }
+      function finishErr() {
+        showToast("Не удалось обновить. Проверьте сеть и попробуйте ещё раз.", true);
+      }
+      function done() {
+        btn.classList.remove("is-loading");
+        btn.disabled = false;
+        btn.textContent = "Обновить";
+      }
+      fetch("/api/refresh", { method: "POST" })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok && j.ok !== false, j: j }; }); })
+        .then(function (res) {
+          if (!res.ok) throw new Error("refresh failed");
+          return reloadEventsData().then(function () {
+            finishOk(res.j || window.EVENTS_META || {});
+          });
+        })
+        .catch(function () {
+          // fallback: soft reload of local events-data.js without server rewrite
+          return reloadEventsData().then(function (meta) {
+            finishOk(meta || window.EVENTS_META || {});
+          }).catch(finishErr);
+        })
+        .then(done, function () { finishErr(); done(); });
+    });
+
+    document.querySelectorAll("#tabs .tab").forEach(function (tab) {
+      tab.addEventListener("click", function () {
+        switchTab(tab.dataset.tab);
+        render();
+      });
+    });
+
+    $("btn-show-more").addEventListener("click", function () {
+      state.page += 1;
+      renderList();
+    });
+
+    $("btn-cal-prev").addEventListener("click", function () {
+      state.month = new Date(state.month.getFullYear(), state.month.getMonth() - 1, 1);
+      renderCalendar();
+    });
+    $("btn-cal-next").addEventListener("click", function () {
+      state.month = new Date(state.month.getFullYear(), state.month.getMonth() + 1, 1);
+      renderCalendar();
+    });
+    $("btn-cal-today").addEventListener("click", function () {
+      var t = parseISO(todayISO());
+      state.month = new Date(t.getFullYear(), t.getMonth(), 1);
+      renderCalendar();
+    });
+
+    $("btn-sutevka-more").addEventListener("click", function () {
+      var expanded = $("btn-sutevka-more").dataset.expanded === "1";
+      syncSutevkaMore(!expanded);
+    });
+
+    $("btn-drawer-close").addEventListener("click", closeDrawer);
+    $("drawer-overlay").addEventListener("click", closeDrawer);
+    document.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape") closeDrawer();
+    });
+  }
+
+  function init() {
+    loadEvents();
+    var t = parseISO(todayISO());
+    state.month = new Date(t.getFullYear(), t.getMonth(), 1);
+    populateFilters();
+    bind();
+    render();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>

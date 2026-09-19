@@ -1,0 +1,52 @@
+KudaGo + Exponet ingest report
+Date: 2026-09-19 16:38 MSK
+
+=== Net new by source (this ingest) ===
+kudago:  1
+exponet: 20
+TOTAL:   21
+
+=== By vertical ===
+kudago: {'industry': 1}
+exponet: {'industry': 17, 'it': 3}
+combined: {'industry': 18, 'it': 3}
+
+=== Catalog sync ===
+Reload before merge: 3591
+After merge write: 3614 (kudago+exponet added)
+Final EVENTS_META: count=2748 updated_at=2026-09-19 16:37 MSK
+Note: parallel TimePad enrich checkpoint overwrote the catalog mid-run with a stale
+in-memory snapshot (timepad 1368→~520 etc.), shrinking total count. Our source=kudago
+and source=exponet rows were re-verified present after the race. Durable copy:
+samples/ingest_kudago_exponet_events.json (21 events).
+
+=== Sample titles: kudago ===
+  - [industry] международная выставка лёгкой и текстильной промышленности «Индустрия Моды» | 2026-10-22 | Санкт-Петербург
+
+=== Sample titles: exponet (5) ===
+  - [industry] MoldMedizin & MoldDent - 2026 | 2026-09-24 | Кишинев, Молдова
+  - [industry] INDUSTRY EXPO - 2026 | 2026-10-14 | Минск, Беларусь
+  - [industry] БелПромФорум - 2026 | 2026-10-14 | Минск, Беларусь
+  - [industry] Полимеры и композиты - 2026 | 2026-10-14 | Минск, Беларусь
+  - [industry] Нефть и Газ Туркменистана - 2026 | 2026-10-21 | —, Туркменистан
+
+=== More exponet samples ===
+  - [industry] Горное дело, металлургия и металлообработка - 2026 | 2026-10-27 | Ташкент, Узбекистан
+  - [it] Expo-Russia Iran - 2026 | 2026-11-16 | —, Иран
+  - [industry] Light + Intelligent Building Istanbul - 2026 | 2026-11-26 | —, Турция
+  - [industry] Котлы и горелки - 2027 | 2027-04-20 | Санкт-Петербург, Россия
+  - [industry] Рос-Газ-Экспо - 2027 | 2027-04-20 | Санкт-Петербург, Россия
+
+=== Method ===
+KudaGo: GET /public-api/v1.4/events/ (business-events, education, exhibition;
+  locations msk/spb/ekb/kzn/nnv; actual_since=now) + /search/ for B2B queries.
+  Lifestyle excluded; false positives (Русская рыба, Beauty & Health) dropped.
+Exponet: GET https://www.exponet.ru/content/xml/exhibitions.ru.xml
+  topics agriculture|forest|building|transport|oil|promexpo|infotech|business|
+  municipal|furniture|healthcare|pets × country=rus + CIS + global topic sweeps;
+  CP1251; showcity/showcountry. ~210 candidates → 20 net-new after dedup vs
+  exponet_future/exponet_agri/etc. (APK already covered → 0 net apk).
+
+Dedup: organizer_url+fuzzy title and title+starts_at.
+TimePad not used. No Apify/Parse.
+Script: ingest_kudago_exponet.py
