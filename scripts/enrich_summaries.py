@@ -219,6 +219,11 @@ def clean_description(text: str) -> str:
         flags=re.I,
     )
     t = re.sub(r"(?:,\s*){2,}$", "", t).strip()
+    t = re.split(r"с перечнем экспонатов и разделов", t, maxsplit=1, flags=re.I)[0]
+    t = re.split(r"стоимость и условия участия обычно", t, maxsplit=1, flags=re.I)[0]
+    t = re.split(r"деловая программа обычно публикуется", t, maxsplit=1, flags=re.I)[0]
+    t = re.split(r"программа форума охватывает", t, maxsplit=1, flags=re.I)[0]
+    t = t.rstrip(" :,;—–-").strip()
     t = re.sub(r"\s+", " ", t).strip()
     return t
 
@@ -260,6 +265,15 @@ def belongs_to_title(title: str, desc: str) -> bool:
                 qtok, ttok = _title_tokens(quoted), _title_tokens(title)
                 if qtok and ttok and not (qtok & ttok):
                     return False
+    m2 = re.search(
+        r"(?:форум|выставка|конференция)\s+по\s+([а-яёa-z0-9\-]{4,40})",
+        d[:200],
+        re.I,
+    )
+    if m2:
+        topic_toks = _title_tokens(m2.group(1))
+        if topic_toks and not (topic_toks & _title_tokens(title)):
+            return False
     return True
 
 
