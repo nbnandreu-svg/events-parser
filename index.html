@@ -967,20 +967,54 @@
       .replace(/"/g, "&quot;");
   }
 
+  function stripMarkup(text) {
+    var s = String(text == null ? "" : text);
+    s = s.replace(/<br\s*\/?>/gi, " ").replace(/<\/?p[^>]*>/gi, " ");
+    s = s.replace(/<[^>]+>/g, " ");
+    s = s.replace(/&nbsp;/gi, " ").replace(/&amp;/g, "&").replace(/&quot;/g, "\"")
+      .replace(/&#39;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+    return s.replace(/\s+/g, " ").trim();
+  }
+
+  function isJunkSummary(s) {
+    var low = String(s || "").toLowerCase();
+    var junk = [
+      "если вы хотите посетить данную выставку",
+      "заполните, пожалуйста, следующую форму",
+      "информация о международных, национальных, региональных",
+      "поиск по выставкам и деловым мероприятиям",
+      "любое использование материалов допускается",
+      "подпишитесь на новости",
+      "подписавшись на новости",
+      "пресс-релиз",
+      "enable javascript",
+      "cookie"
+    ];
+    for (var i = 0; i < junk.length; i++) {
+      if (low.indexOf(junk[i]) >= 0) return true;
+    }
+    if (/#rec\d+/.test(s) || /\.t-btnflex/.test(s) || /\{color:/.test(s)) return true;
+    if ((s.split("\uFFFD").length - 1) >= 2) return true;
+    return false;
+  }
 
   function isRealSummary(text, title) {
     if (!text) return false;
-    var s = String(text).trim();
-    if (s.length < 120) return false;
-    // обрезанный ingest: «...», «...», заканчивается на ,...
+    var s = stripMarkup(text);
+    if (s.length < 50) return false;
     if (/(\.\.\.|…|\,\.\.\.)\s*$/.test(s)) return false;
+    if (isJunkSummary(s)) return false;
+    var titleLow = String(title || "").toLowerCase();
+    if (/агравия/i.test(s) && !/агравия|agravia/i.test(titleLow)) return false;
+    if (/pulpfor/i.test(s) && !/pulpfor|пульпфор/i.test(titleLow)) return false;
+    if (/финатлон/i.test(s) && titleLow.indexOf("финатлон") < 0) return false;
     var norm = function (x) {
       return String(x || "").toLowerCase().replace(/[^a-zа-яё0-9]+/gi, " ").trim();
     };
     var nt = norm(title);
     var ns = norm(s);
     if (nt && (ns === nt || (ns.indexOf(nt) === 0 && ns.length < nt.length + 30))) return false;
-    if (/^(межрегиональная|международная|сельскохозяйственная)\s+выставка\.?$/i.test(s.trim())) return false;
+    if (/^(межрегиональная|международная|сельскохозяйственная)\s+выставка\.?$/i.test(s)) return false;
     return true;
   }
 
@@ -1003,8 +1037,9 @@
     for (var i = 0; i < keys.length; i++) {
       var v = e[keys[i]];
       if (v == null) continue;
-      var s = String(v).trim();
+      var s = stripMarkup(v);
       if (!s || s === "—" || s === "-") continue;
+      if (!isRealSummary(s, e.title)) continue;
       if (s.length > best.length) best = s;
     }
     return best;

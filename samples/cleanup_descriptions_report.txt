@@ -1,0 +1,12 @@
+{
+  "kept": 1486,
+  "html_or_ws_cleaned": 405,
+  "cleared_mismatch": 241,
+  "cleared_unusable": 398,
+  "cleared_shared_leak": 6,
+  "total": 2274,
+  "nonempty_after": 1480,
+  "usable_after": 1480,
+  "written_count": 2256,
+  "updated_at": "2026-09-20 15:16"
+}

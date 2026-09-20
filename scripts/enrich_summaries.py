@@ -21,7 +21,8 @@ from pathlib import Path
 from threading import Lock
 from typing import Any, Optional
 
-ROOT = Path(__file__).resolve().parent
+_HERE = Path(__file__).resolve().parent
+ROOT = _HERE.parent if (_HERE.parent / "events_upcoming.json").exists() else _HERE
 JSON_PATH = ROOT / "events_upcoming.json"
 JS_PATH = ROOT / "events-data.js"
 SAMPLES = ROOT / "samples"
@@ -74,6 +75,38 @@ NAV_NOISE = re.compile(
     r"cookie|enable javascript|подпишитесь|все права|copyright|войти|"
     r"личный кабинет|политика конфиденциальности|пользовательск|"
     r"^меню$|^главная$|^контакты$",
+    re.I,
+)
+LISTING_JUNK_RE = re.compile(
+    r"если вы хотите посетить данную выставку|"
+    r"заполните, пожалуйста, следующую форму|"
+    r"информация о международных, национальных, региональных|"
+    r"поиск по выставкам и деловым мероприятиям|"
+    r"любое использование материалов допускается|"
+    r"редакция не несет ответственности|"
+    r"в соответствии с вашими пожеланиями, мы орган|"
+    r"#rec\d+|"
+    r"\.t-btnflex|"
+    r"пресс-релиз|"
+    r"подпишитесь на новости|"
+    r"подписавшись на новости",
+    re.I,
+)
+STALE_YEAR_RE = re.compile(
+    r"(выставка|форум|конференция)\s+.{0,80}20(23|24|25)\s+проводится|"
+    r"\b20(23|24|25)\s*проводится\s+c\s|"
+    r"\d{2}\.\d{2}\.20(23|24|25)\s*//",
+    re.I,
+)
+# Brand in text → title must mention the same brand, otherwise this is a leaked listing blurb.
+HUB_BRANDS: list[tuple[re.Pattern[str], re.Pattern[str]]] = [
+    (re.compile(r"агравия", re.I), re.compile(r"агравия|agravia", re.I)),
+    (re.compile(r"pulpfor", re.I), re.compile(r"pulpfor|пульпфор", re.I)),
+    (re.compile(r"финатлон", re.I), re.compile(r"финатлон", re.I)),
+    (re.compile(r"tech\s*week", re.I), re.compile(r"tech\s*week", re.I)),
+]
+MULTI_EVENT_LIST_RE = re.compile(
+    r"международн\w+\s+(выставка|форум|конференция)",
     re.I,
 )
 TEMPLATE_ONLY = re.compile(
@@ -129,39 +162,25 @@ def clip_summary(text: str, limit: int = 800) -> str:
 
 
 def is_real_summary(text: Optional[str], title: Optional[str] = None) -> bool:
-    s = (text or "").strip()
+    s = clean_description(text or "")
+    if not is_usable_description(s, title):
+        return False
     if len(s) < 120:
         return False
-    if ends_with_ellipsis(s):
-        return False
-    if s.count("//") >= 2 or s.lower().count("пресс-релиз") >= 2:
+    if s.count("//") >= 2:
         return False
     low = s.lower()
-    # junk / paywall / subscribe / encoding garbage
     junk = (
-        "подписавшись на новости",
-        "подпишитесь на новости",
         "услуга оказывается на платной",
         "стоимость 1 регистрации",
         "шенгенской визы",
         "визовом центре",
         "отпечатки всех 10 пальцев",
-        "cookie",
-        "enable javascript",
         "javascript required",
-        "Ð",  # mojibake marker
         "Ïîä",
         "âåò",
     )
     if any(j in low or j in s for j in junk):
-        return False
-    # too many replacement/mojibake chars
-    if s.count("�") >= 2:
-        return False
-    nt, ns = _norm(title or ""), _norm(s)
-    if nt and (ns == nt or (ns.startswith(nt) and len(ns) < len(nt) + 30)):
-        return False
-    if TEMPLATE_ONLY.match(s):
         return False
     if sentence_count(s) < 2:
         return False
@@ -169,9 +188,100 @@ def is_real_summary(text: Optional[str], title: Optional[str] = None) -> bool:
 
 
 def _clean(text: str) -> str:
-    t = unescape(re.sub(r"<[^>]+>", " ", text or ""))
-    t = t.replace("\xa0", " ").replace("\r", " ")
-    return re.sub(r"\s+", " ", t).strip()
+    return clean_description(text)
+
+
+def clean_description(text: str) -> str:
+    """Strip HTML/entities and collapse whitespace. Safe for list + drawer."""
+    t = text or ""
+    t = re.sub(r"<br\s*/?>", " ", t, flags=re.I)
+    t = re.sub(r"</p\s*>", " ", t, flags=re.I)
+    t = re.sub(r"<p[^>]*>", " ", t, flags=re.I)
+    t = unescape(re.sub(r"<[^>]+>", " ", t))
+    t = t.replace("\xa0", " ").replace("\u200b", "").replace("\r", " ")
+    t = re.sub(r"\s+", " ", t).strip()
+    t = re.sub(r"\s+([.,;:!?])", r"\1", t)
+    t = re.sub(
+        r"(?:,\s*){0,3}программа,\s*спикеры,\s*стоимость участия\.?\s*"
+        r"подробности на all-events\.ru!?\s*$",
+        "",
+        t,
+        flags=re.I,
+    )
+    t = re.sub(r"\s*подробности на all-events\.ru!?\s*$", "", t, flags=re.I)
+    t = re.sub(
+        r"\s*даты проведения:\s*\d{4}-\d{2}-\d{2}"
+        r"(?:\s*[–-]\s*\d{4}-\d{2}-\d{2})?\.\s*"
+        r"место проведения:\s*[^.]+."
+        r"(?:\s*тип мероприятия:\s*[^.]+.)?\s*$",
+        "",
+        t,
+        flags=re.I,
+    )
+    t = re.sub(r"(?:,\s*){2,}$", "", t).strip()
+    t = re.sub(r"\s+", " ", t).strip()
+    return t
+
+
+def _title_tokens(s: str) -> set[str]:
+    words = re.findall(r"[a-zа-яё0-9]{4,}", _norm(s))
+    stop = {
+        "мероприятие", "выставка", "форум", "конференция", "семинар",
+        "конгресс", "вебинар", "встреча", "митап", "онлайн", "россия",
+        "международная", "международный", "специализированная",
+        "пройдет", "пройдёт", "состоится",
+    }
+    return {w for w in words if w not in stop and not w.isdigit()}
+
+
+def belongs_to_title(title: str, desc: str) -> bool:
+    """False when the blurb is clearly about another named event or a listing hub."""
+    d = clean_description(desc)
+    if not d:
+        return False
+    if LISTING_JUNK_RE.search(d) or STALE_YEAR_RE.search(d):
+        return False
+    if len(MULTI_EVENT_LIST_RE.findall(d)) >= 3:
+        return False
+    for brand, title_ok in HUB_BRANDS:
+        if brand.search(d) and not title_ok.search(title or ""):
+            return False
+    m = re.search(r"«([^»]{8,80})»", d[:240])
+    if m:
+        quoted = m.group(1)
+        looks_event = bool(re.search(
+            r"выставк|форум|конференц|конгресс|салон|экспо|недел|20\d{2}",
+            quoted,
+            re.I,
+        ))
+        if looks_event:
+            qt, tt = _norm(quoted), _norm(title)
+            if qt and tt and qt not in tt and tt not in qt:
+                qtok, ttok = _title_tokens(quoted), _title_tokens(title)
+                if qtok and ttok and not (qtok & ttok):
+                    return False
+    return True
+
+
+def is_usable_description(text: Optional[str], title: Optional[str] = None) -> bool:
+    """Display gate: cleaned, on-topic, not a listing leak. One solid paragraph is enough."""
+    s = clean_description(text or "")
+    if len(s) < 50:
+        return False
+    if ends_with_ellipsis(s):
+        return False
+    if not belongs_to_title(title or "", s):
+        return False
+    if _is_noise_summary(s):
+        return False
+    if s.count("�") >= 2 or "Ð" in s:
+        return False
+    nt, ns = _norm(title or ""), _norm(s)
+    if nt and (ns == nt or (ns.startswith(nt) and len(ns) < len(nt) + 30)):
+        return False
+    if TEMPLATE_ONLY.match(s):
+        return False
+    return True
 
 
 def fetch_html(url: str, timeout: int = 25) -> tuple[str, str]:
@@ -247,15 +357,20 @@ def extract_jsonld_event_description(html: str) -> str:
 
 
 def _is_noise_summary(text: str) -> bool:
-    t = (text or "").strip()
+    t = clean_description(text or "")
     if not t:
         return True
     if NAV_NOISE.search(t):
         return True
-    # press-release / news listings
+    if LISTING_JUNK_RE.search(t):
+        return True
+    if STALE_YEAR_RE.search(t):
+        return True
     if t.count("//") >= 2 or t.lower().count("пресс-релиз") >= 2:
         return True
     if len(re.findall(r"\d{2}\.\d{2}\.\d{4}\s*//", t)) >= 2:
+        return True
+    if "#rec" in t or ".t-btnflex" in t or "{color:" in t:
         return True
     return False
 
@@ -508,7 +623,6 @@ def find_donor_summary(
     self_title = (event.get("title") or "").strip()
     self_start = event.get("starts_at") or ""
     best = ""
-    soft_best = ""
     for other in catalog:
         ot = (other.get("title") or "").strip()
         if ot == self_title and (other.get("starts_at") or "") == self_start:
@@ -523,16 +637,10 @@ def find_donor_summary(
         ok = normalize_title_key(ot)
         if not ok:
             continue
-        if ok == key:
+        if ok == key and belongs_to_title(self_title, desc):
             if len(desc) > len(best):
                 best = desc
-            continue
-        # soft: shared stem (≥12 chars) or containment
-        if len(key) >= 10 and len(ok) >= 10:
-            if key[:16] in ok or ok[:16] in key or key in ok or ok in key:
-                if len(desc) > len(soft_best):
-                    soft_best = desc
-    return best or soft_best or None
+    return best or None
 
 
 def resolve_expomap_url(title: str) -> Optional[str]:
@@ -569,7 +677,7 @@ def resolve_expomap_url(title: str) -> Optional[str]:
 
 
 def polish_summary(text: str, event: dict) -> str:
-    s = (text or "").strip()
+    s = clean_description(text or "")
     if not s:
         return ""
     if is_real_summary(s, event.get("title")):
@@ -713,7 +821,7 @@ def write_catalog(events: list[dict]) -> dict:
             "status": e.get("date_status") or "confirmed",
             "url": e.get("organizer_url") or "",
             "place": e.get("city") or "—",
-            "summary": (e.get("description") or "").strip(),
+            "summary": clean_description(e.get("description") or ""),
             "source": e.get("source") or "",
         })
     meta = {
