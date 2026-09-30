@@ -208,6 +208,65 @@
   #filter-country { min-width: 140px; }
   #filter-type { min-width: 220px; font-weight: 500; }
 
+  /* Tumbler: «Международные мероприятия». Off = no audience filter. */
+  .toggle-intl {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    height: var(--control-h);
+    min-height: var(--control-h);
+    padding: 0 2px 0 4px;
+    cursor: pointer;
+    user-select: none;
+    align-self: flex-end;
+  }
+  .toggle-intl__label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.2;
+  }
+  .tumbler {
+    position: relative;
+    width: 40px;
+    height: 22px;
+    flex: 0 0 auto;
+  }
+  .tumbler input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 1;
+  }
+  .tumbler__track {
+    position: absolute;
+    inset: 0;
+    background: #CBD5E1;
+    border-radius: 999px;
+    transition: background .15s;
+  }
+  .tumbler__track::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 1px 2px rgba(15,23,42,.22);
+    transition: transform .15s;
+  }
+  .tumbler input:checked + .tumbler__track { background: var(--accent); }
+  .tumbler input:checked + .tumbler__track::after { transform: translateX(18px); }
+  .tumbler input:focus-visible + .tumbler__track {
+    box-shadow: 0 0 0 3px rgba(37,99,235,.25);
+  }
+
   /* ChipVertical — pill chips */
   #chips-vertical {
     display: flex;
@@ -750,6 +809,7 @@
       width: 100%;
     }
     .filter-field { flex: 1 1 calc(50% - 8px); }
+    .toggle-intl { flex: 1 1 100%; }
     .filter-field.is-full { flex: 1 1 100%; }
     .day-cell { min-height: 72px; padding: 5px; }
     .day-cell__item { font-size: 10px; }
@@ -760,7 +820,7 @@
   }
 </style>
 
-<script src="./events-data.js?v=20260920c"></script>
+<script src="./events-data.js"></script>
 </head>
 <body>
   <div class="app">
@@ -803,6 +863,13 @@
         <label class="filter-field" for="filter-country">
           <span>Страна</span>
           <select id="filter-country"><option value="">Все страны</option></select>
+        </label>
+        <label class="toggle-intl" for="filter-intl">
+          <span class="toggle-intl__label">Международные мероприятия</span>
+          <span class="tumbler">
+            <input type="checkbox" id="filter-intl" aria-label="Международные мероприятия" />
+            <span class="tumbler__track" aria-hidden="true"></span>
+          </span>
         </label>
         <label class="filter-field" for="filter-type">
           <span>Тип мероприятия</span>
@@ -967,54 +1034,20 @@
       .replace(/"/g, "&quot;");
   }
 
-  function stripMarkup(text) {
-    var s = String(text == null ? "" : text);
-    s = s.replace(/<br\s*\/?>/gi, " ").replace(/<\/?p[^>]*>/gi, " ");
-    s = s.replace(/<[^>]+>/g, " ");
-    s = s.replace(/&nbsp;/gi, " ").replace(/&amp;/g, "&").replace(/&quot;/g, "\"")
-      .replace(/&#39;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">");
-    return s.replace(/\s+/g, " ").trim();
-  }
-
-  function isJunkSummary(s) {
-    var low = String(s || "").toLowerCase();
-    var junk = [
-      "если вы хотите посетить данную выставку",
-      "заполните, пожалуйста, следующую форму",
-      "информация о международных, национальных, региональных",
-      "поиск по выставкам и деловым мероприятиям",
-      "любое использование материалов допускается",
-      "подпишитесь на новости",
-      "подписавшись на новости",
-      "пресс-релиз",
-      "enable javascript",
-      "cookie"
-    ];
-    for (var i = 0; i < junk.length; i++) {
-      if (low.indexOf(junk[i]) >= 0) return true;
-    }
-    if (/#rec\d+/.test(s) || /\.t-btnflex/.test(s) || /\{color:/.test(s)) return true;
-    if ((s.split("\uFFFD").length - 1) >= 2) return true;
-    return false;
-  }
 
   function isRealSummary(text, title) {
     if (!text) return false;
-    var s = stripMarkup(text);
-    if (s.length < 50) return false;
+    var s = String(text).trim();
+    if (s.length < 120) return false;
+    // обрезанный ingest: «...», «...», заканчивается на ,...
     if (/(\.\.\.|…|\,\.\.\.)\s*$/.test(s)) return false;
-    if (isJunkSummary(s)) return false;
-    var titleLow = String(title || "").toLowerCase();
-    if (/агравия/i.test(s) && !/агравия|agravia/i.test(titleLow)) return false;
-    if (/pulpfor/i.test(s) && !/pulpfor|пульпфор/i.test(titleLow)) return false;
-    if (/финатлон/i.test(s) && titleLow.indexOf("финатлон") < 0) return false;
     var norm = function (x) {
       return String(x || "").toLowerCase().replace(/[^a-zа-яё0-9]+/gi, " ").trim();
     };
     var nt = norm(title);
     var ns = norm(s);
     if (nt && (ns === nt || (ns.indexOf(nt) === 0 && ns.length < nt.length + 30))) return false;
-    if (/^(межрегиональная|международная|сельскохозяйственная)\s+выставка\.?$/i.test(s)) return false;
+    if (/^(межрегиональная|международная|сельскохозяйственная)\s+выставка\.?$/i.test(s.trim())) return false;
     return true;
   }
 
@@ -1037,9 +1070,8 @@
     for (var i = 0; i < keys.length; i++) {
       var v = e[keys[i]];
       if (v == null) continue;
-      var s = stripMarkup(v);
+      var s = String(v).trim();
       if (!s || s === "—" || s === "-") continue;
-      if (!isRealSummary(s, e.title)) continue;
       if (s.length > best.length) best = s;
     }
     return best;
@@ -1128,6 +1160,7 @@
       state.region !== "cis" ||
       $("filter-city").value ||
       $("filter-country").value ||
+      intlOnly() ||
       $("filter-type").value ||
       $("filter-from").value ||
       $("filter-to").value ||
@@ -1164,10 +1197,16 @@
     return "прочее";
   }
 
+  function intlOnly() {
+    var el = $("filter-intl");
+    return !!(el && el.checked);
+  }
+
   function filtered() {
     var today = todayISO();
     var city = $("filter-city").value;
     var country = $("filter-country").value;
+    var onlyIntl = intlOnly();
     var type = $("filter-type").value;
     var from = $("filter-from").value;
     var to = $("filter-to").value;
@@ -1179,6 +1218,8 @@
       if (state.region === "cis" && !isCisCountry(e.country)) return false;
       if (city && e.city !== city) return false;
       if (country && e.country !== country) return false;
+      // "intl" is the audience field, not the country. Moscow stays in «РФ и СНГ».
+      if (onlyIntl && e.audience !== "intl") return false;
       if (type && e.type !== type) return false;
       if (from && e.date < from) return false;
       if (to && e.date > to) return false;
@@ -1360,6 +1401,7 @@
     var today = todayISO();
     var city = $("filter-city").value;
     var country = $("filter-country").value;
+    var onlyIntl = intlOnly();
     var type = $("filter-type").value;
     var from = $("filter-from").value;
     var to = $("filter-to").value;
@@ -1370,6 +1412,7 @@
       if (state.region === "cis" && !isCisCountry(e.country)) return false;
       if (city && e.city !== city) return false;
       if (country && e.country !== country) return false;
+      if (onlyIntl && e.audience !== "intl") return false;
       if (type && e.type !== type) return false;
       if (from && e.date < from) return false;
       if (to && e.date > to) return false;
@@ -1589,6 +1632,7 @@
     $("filter-type").value = "";
     $("filter-city").value = "";
     $("filter-country").value = "";
+    $("filter-intl").checked = false;
     $("filter-type").value = "";
     $("filter-from").value = "";
     $("filter-to").value = "";
@@ -1613,7 +1657,7 @@
 
   function exportExcel() {
     var rows = filtered();
-    var headers = ["Название", "Дата начала", "Дата конца", "Город", "Страна", "Тип", "Вертикаль", "Площадка", "Краткое описание", "Ссылка"];
+    var headers = ["Название", "Дата начала", "Дата конца", "Город", "Страна", "Аудитория", "Тип", "Вертикаль", "Площадка", "Краткое описание", "Ссылка"];
     function cell(v) {
       var s = String(v == null ? "" : v);
       // Excel SpreadsheetML text cell
@@ -1626,6 +1670,7 @@
         e.endDate || e.end_date || "",
         e.city || "",
         e.country || "",
+        e.audience === "ru" ? "Русскоязычные" : (e.audience === "intl" ? "Международные" : (e.audience === "unknown" ? "Не определено" : "")),
         e.type || "",
         verticalLabel(e.vertical),
         e.place || e.venue || "",
@@ -1678,7 +1723,7 @@
       });
     });
 
-    ["filter-city", "filter-country", "filter-type", "filter-from", "filter-to", "filter-confirmed-only"].forEach(function (id) {
+    ["filter-city", "filter-country", "filter-intl", "filter-type", "filter-from", "filter-to", "filter-confirmed-only"].forEach(function (id) {
       $(id).addEventListener("change", function () {
         state.page = 1;
         render();
