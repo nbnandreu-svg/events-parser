@@ -1232,6 +1232,8 @@
       });
   }
 
+  function onlyInternationalReviewHint() { return intlOnly(); }
+
   function intlOnly() {
     var el = $("filter-intl");
     return !!(el && el.checked);
@@ -1295,6 +1297,15 @@
       $("meta-hint").textContent = "Все найденные на экране";
     }
 
+    if (onlyInternationalReviewHint()) {
+      var cov = (window.EVENTS_META || {}).international_coverage;
+      if (cov) {
+        var states = cov.states || {};
+        var checked = (states.qualified || 0) + (states.reviewed_no_signal || 0);
+        $("meta-hint").textContent = "Страницы программ обработаны: " + checked + " из " + cov.total +
+          ". Недоступны: " + (states.unavailable || 0) + ". Программа не найдена: " + (states.no_programme_found || 0) + ".";
+      }
+    }
     var list = $("event-list");
     var empty = $("list-empty");
     var moreWrap = $("list-more-wrap");
@@ -1582,6 +1593,11 @@
     if (proofNode) {
       var label = e.translationStatus === "confirmed" ? "На странице мероприятия указан синхронный перевод" :
         (e.translationStatus === "potential" ? "Есть иностранные спикеры или доклады на иностранном языке" : "Данных о языках выступлений и переводе пока нет");
+      if (e.translationStatus !== "confirmed" && e.translationStatus !== "potential") {
+        label = ({pending:"Программа еще не проверена", unavailable:"Страница недоступна при последней проверке",
+          no_programme_found:"На проверенной странице не найдена программа", partially_unavailable:"Часть страниц не загрузилась. Данных для оценки недостаточно", programme_unreadable:"Программа найдена, но ее текст не удалось прочитать", outside_scope:"Мероприятие за пределами России либо его проведение в России не подтверждено", unresolved_url:"Есть ссылка на каталог, программа не найдена",
+          identity_or_edition_mismatch:"Не удалось сопоставить программу с этим выпуском", reviewed_no_signal:"В прочитанной программе недостаточно сведений о необходимости перевода"})[(e.translationReview || {}).state || "pending"] || label;
+      }
       var proofs = (e.translationEvidence || []).filter(function (x) { return /^https?:\/\//i.test(x.url || ""); });
       if (e.translationStatus === "potential" && proofs.some(function (x) { return x.participation_status === "invited"; })) {
         label = "Приглашен иностранный спикер. Потребность в переводе стоит уточнить.";

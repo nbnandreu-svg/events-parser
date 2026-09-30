@@ -137,31 +137,44 @@ def short_summary(value, title='', limit=460):
 def assess_translation(event, evidence=None):
     """No inference from a name, brand, exhibitor nationality or 'international'."""
     base={'audience':'unknown','translation_status':'unknown','translation_evidence':[]}
-    if event.get('country') not in ('Россия','РФ','Russian Federation','Russia'):
+    from venue_rules import venue_country
+    if venue_country(event) not in ('Россия','РФ','Russian Federation','Russia'):
         return {**base,'translation_status':'outside_russia'}
+    if clean(event.get('city')).lower() in {'онлайн','online','онлайн-трансляция'}:
+        return {**base,'translation_status':'online_only'}
     if re.search(r'Великобритани|Германи|Франци|Итали|Казахстан|Беларус|Узбекистан|Кыргызстан|Турци|Серби|Лондон|Белград|Париж|Дубай|Стамбул|Алматы|Астана|Ташкент|Минск|Сеул',event.get('city',''),re.I):
         return {**base,'translation_status':'venue_conflict'}
     year=(event.get('starts_at') or '')[:4]
     qualified=[]
-    for item in evidence or event.get('language_evidence') or []:
+    from language_rules import COUNTRY_RE,LANGUAGE_RE,NEGATED,OPERATIONAL_TRANSLATION,PRESENTATION_LANGUAGE,COUNTRIES
+    for item in (event.get('language_evidence') or []) if evidence is None else evidence:
         if str(item.get('edition_year','')) != year or not item.get('url'):
             continue
         text=clean(item.get('text'))
         if not text:continue
-        language=re.search(r'английск|китайск|арабск|испанск|французск|немецк|португальск|японск|корейск|english|chinese|arabic|spanish|french|german|portuguese|japanese|korean',text,re.I)
+        language=LANGUAGE_RE.search(text)
         # Country alone is insufficient, but an explicitly identified speaker from
         # a non-Russian-language country is a potential interpretation lead.
-        foreign_country=re.search(r'\b(?:Кита[йя]|КНР|Инди[яи]|Иран|Бразили[яи]|Турци[яи]|Япони[яи]|Коре[яи]|Германи[яи]|Франци[яи]|Итали[яи]|Великобритани[яи]|США|Канад[аы]|ОАЭ|Египет|Нидерланды|Израиль|Испания|Оман|ЮАР|China|India|Iran|Brazil|Turkey|Japan|Korea|Germany|France|Italy|Canada|USA|UAE|Netherlands|Israel|Spain|Oman)\b',text,re.I)
+        # Country in an old job or education paragraph is not the speaker's
+        # current affiliation. Do not treat delegates/exhibitors as speakers.
+        actor_header=re.split(r'профессиональная деятельность|(?:ранее |раньше )|работал[аи]?\b|работала\b|образование\s*:|previously|formerly|education\s*:',text,flags=re.I)[0]
+        foreign_country=COUNTRY_RE.search(actor_header)
         if item.get('kind')=='foreign_speaker' and foreign_country:
+            if re.search(r'многолетн|прошлых лет|в их числе|история компании',actor_header,re.I):continue
+            explicit_origin=re.search(r'(?:спикер\w*|докладчик\w*|лектор\w*|speakers?|lecturers?).{0,35}\b(?:из|from)\s+(?:'+COUNTRIES+r')\b',actor_header,re.I)
+            explicit_speaker=re.search(r'^(?:(?:иностранн\w*|зарубежн\w*)\s+)?(?:спикер\w*|докладчик\w*|лектор\w*|speakers?|lecturers?)\b.{0,120}(?:'+COUNTRIES+r')\b',actor_header,re.I)
+            if not item.get('speaker_name') and not explicit_origin and not explicit_speaker:continue
             if not re.search(r'выступ\w*.{0,35}на русском|доклад.{0,25}на русском|presentation.{0,25}in Russian',text,re.I):
                 qualified.append({**item,'text':text[:700],'level':'potential'})
             continue
-        if not language:continue
-        if re.search(r'без\s+(?:синхронного\s+)?перевода|перевод\s+не\s+(?:предусмотрен|требуется)|no interpretation',text,re.I):
+        if NEGATED.search(text):
             continue
+        if OPERATIONAL_TRANSLATION.search(text) and not re.search(r'жестов|сурдоперевод|sign language',text,re.I):
+            qualified.append({**item,'text':text[:700],'level':'confirmed'});continue
+        if not language:continue
         if re.search(r'синхронн\w*\s+перевод|simultaneous\s+(?:interpretation|translation)',text,re.I):
             qualified.append({**item,'text':text[:700],'level':'confirmed'})
-        elif re.search(r'(?:доклад|выступлен|спикер|speaker|presentation).{0,90}(?:на\s+|in\s+)',text,re.I):
+        elif PRESENTATION_LANGUAGE.search(text):
             qualified.append({**item,'text':text[:700],'level':'potential'})
     if qualified:
         return {'audience':'intl','translation_status':'confirmed' if any(x['level']=='confirmed' for x in qualified) else 'potential',
@@ -187,6 +200,11 @@ def prepare_catalog(events):
         e['starts_at'],e['ends_at']=start.isoformat(),end.isoformat()
         e['title']=clean(e.get('title'))
         e['city']=normalize_city(e.get('city'))
+        from venue_rules import venue_country
+        corrected_country=venue_country(e)
+        if corrected_country!=e.get('country'):
+            e['country_correction']={'previous':e.get('country'),'basis':'venue_city','city':e['city']}
+            e['country']=corrected_country
         if not e['title'] or len(re.sub(r'[^a-zа-я0-9]', '', e['title'].lower()))<4 or e['title'].count('�')>2 or re.fullmatch(r'(?:мероприятие|выставка|конференция)\s*(?:20\d{2})?',e['title'],re.I):
             removed.append({'reason':'invalid_title','event':e});continue
         if (end-start).days>45 and not re.search(r'курс|обучен|серия|сезон|акселератор',e['title'],re.I):
@@ -252,7 +270,7 @@ def to_browser(e):
         city=e.get('city',''),country=e.get('country',''),audience=e.get('audience','unknown'),date=e['starts_at'],endDate=e['ends_at'],
         status=e.get('date_status','confirmed'),url=e.get('organizer_url',''),place=e.get('city',''),summary=e.get('description',''),
         source=e.get('source',''),sources=e.get('sources',[]),translationStatus=e.get('translation_status','unknown'),
-        translationEvidence=e.get('translation_evidence',[]),sourceUrls=e.get('source_urls',[]),parentEventUrl=e.get('parent_event_url',''))
+        translationEvidence=e.get('translation_evidence',[]),translationReview=e.get('translation_review',{}),sourceUrls=e.get('source_urls',[]),parentEventUrl=e.get('parent_event_url',''))
 
 def atomic_text(path,text):
     path=Path(path);path.parent.mkdir(parents=True,exist_ok=True)
@@ -262,7 +280,10 @@ def atomic_text(path,text):
 def write_catalog(events, root=ROOT, extra_meta=None):
     with CATALOG_LOCK:
         events,removed=prepare_catalog(events)
-        meta={'updated_at':stamp(),'count':len(events),'international_count':sum(e['audience']=='intl' for e in events),**(extra_meta or {})}
+        russian=[e for e in events if e.get('country') in {'Россия','РФ','Russia','Russian Federation'}]
+        review_counts=Counter(e.get('translation_review',{}).get('state','pending') for e in russian)
+        meta={'updated_at':stamp(),'count':len(events),'international_count':sum(e['audience']=='intl' for e in events),
+              'international_coverage':{'total':len(russian),'states':dict(review_counts)},**(extra_meta or {})}
         # Each file is atomically replaced. Both are generated from the same prepared rows.
         atomic_text(root/'events_upcoming.json',json.dumps(events,ensure_ascii=False,indent=2))
         atomic_text(root/'events-data.js','window.EVENTS = '+json.dumps([to_browser(e) for e in events],ensure_ascii=False)+';\nwindow.EVENTS_META = '+json.dumps(meta,ensure_ascii=False)+';\n')

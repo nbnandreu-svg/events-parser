@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 from urllib.parse import urlsplit
 import httpx
-from catalog_core import ROOT, CATALOG_LOCK, today, stamp, canonical_url, same_edition, short_summary, write_catalog, atomic_text, assess_translation
+from catalog_core import ROOT, CATALOG_LOCK, today, stamp, canonical_url, same_edition, short_summary, write_catalog, atomic_text, assess_translation,prepare_catalog
 from event_engine import run_parse, USER_AGENT
 from page_facts import extract_facts, related_evidence
 
@@ -109,14 +109,19 @@ async def enrich_rows(events,limit=100,ids=None):
         await asyncio.gather(*(one(e) for e in candidates))
     return log
 
-async def refresh_async(source_ids=None,enrich_limit=120,offline=False):
+async def refresh_async(source_ids=None,enrich_limit=120,offline=False,review_international=True):
     path=ROOT/'events_upcoming.json';existing=json.loads(path.read_text(encoding='utf-8')) if path.exists() else []
     existing=[e for e in existing if (e.get('ends_at') or '')>=today().isoformat()];sources=[];incoming=[]
     if not offline:
         items,results=await run_parse(source_ids,kind='event');sources=[r.model_dump(mode='json') for r in results]
         incoming=[convert(i) for i in items if i.published_at]
     events,added,updated=merge_live(existing,incoming)
+    events,quality_removed=prepare_catalog(events)
     details=await enrich_rows(events,enrich_limit) if enrich_limit and not offline else []
+    international_review={}
+    if review_international and not offline:
+        from international_scan import scan
+        international_review=await scan(events,resume=True)
     parents={canonical_url(url):e for e in events for url in e.get('child_event_urls',[])}
     for e in events:
         parent=parents.get(canonical_url(e.get('organizer_url')))
@@ -127,7 +132,8 @@ async def refresh_async(source_ids=None,enrich_limit=120,offline=False):
     prior=json.loads(prior_path.read_text(encoding='utf-8')) if prior_path.exists() else {}
     runs=prior.get('source_runs') or {s['source_id']:s for s in prior.get('sources',[])}
     runs.update({s['source_id']:{**s,'checked_at':stamp()} for s in sources})
-    report={'at':stamp(),'sources':sources,'source_runs':runs,'details':details,'added':added,'updated':updated,'before':len(existing),
+    report={'at':stamp(),'sources':sources,'source_runs':runs,'details':details,'international_review':international_review,'added':added,'updated':updated,'before':len(existing),
+            'duplicates_merged':sum(x['reason']=='duplicate' for x in quality_removed),'quality_exclusions':len(quality_removed),
             'source_errors':sum(bool(s.get('error')) for s in runs.values()),'empty_sources':[s['source_id'] for s in runs.values() if not s['fetched']]}
     with CATALOG_LOCK:
         current=json.loads(path.read_text(encoding='utf-8')) if path.exists() else [];by_id={e.get('id'):e for e in current if e.get('id')}

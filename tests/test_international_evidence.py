@@ -50,7 +50,7 @@ class InternationalEvidenceTests(unittest.TestCase):
     def test_conflicting_foreign_venue_excluded(self):
         e=event();e['city']='Великобритания, Лондон'
         evidence=related_evidence(SPEAKER_HTML,'https://biopromforum.ru/speakers2026',event())
-        self.assertEqual(assess_translation(e,evidence)['translation_status'],'venue_conflict')
+        self.assertEqual(assess_translation(e,evidence)['translation_status'],'outside_russia')
     def test_same_bioprom_edition_has_one_key(self):
         self.assertEqual(title_key('III Международный форум БИОПРОМ'),title_key('Биопром: промышленность и технологии для человека 2026'))
 

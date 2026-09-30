@@ -8,7 +8,7 @@ from catalog_core import clean, short_summary, title_key, canonical_url, stamp
 def matching_title(expected, actual):
     a,b=title_key(expected),title_key(actual)
     if not a or not b:return False
-    if a in b or b in a:return min(len(a),len(b))>=5
+    if a in b or b in a:return min(len(a),len(b))>=4
     generic={'форум','конференция','международный','международная','выставка','россия','москва','онлайн','день','day','it','в','и','на','по'}
     aa={x for x in a.split() if len(x)>2 and x not in generic}
     bb={x for x in b.split() if len(x)>2 and x not in generic}
@@ -28,13 +28,15 @@ def schema_events(soup):
         except (ValueError,TypeError):continue
 
 def language_evidence(soup,url,year):
+    from language_rules import COUNTRY_RE
     evidence=[]
     page_heading=' '.join(clean(n.get_text(' ',strip=True)) for n in soup.select('title,h1'))
-    speaker_page=bool(re.search(r'спикер|лектор|докладчик|speaker|lecturer',page_heading,re.I))
+    speaker_page=bool(re.search(r'спикер|лектор|докладчик|speaker|lecturer|keynote',page_heading,re.I))
     seen=set()
-    for node in soup.select('p,li,.languages,.translation,.tn-atom,.t-descr,.t-text,[class*="speaker"],[class*="Speaker"],[class*="lecturer"],[class*="itemwrapper"]'):
+    for node in soup.select('p,li,.languages,.translation,.tn-atom,.t-descr,.t-text,[class*="speaker"],[class*="Speaker"],[class*="lecturer"],[class*="itemwrapper"],[class*="person-card"],[class*="talk-language"]'):
         blob=clean(node.get_text(' ',strip=True))
         if not blob or len(blob)>1000:continue
+        if len(node.select('.speaker-item,.speaker-card,.t524__itemwrapper'))>1:continue
         section_heading=node.find_previous('h2')
         section_years=set(re.findall(r'\b20\d{2}\b',clean(section_heading.get_text(' ',strip=True)))) if section_heading else set()
         if section_years and year not in section_years:continue
@@ -43,14 +45,15 @@ def language_evidence(soup,url,year):
         seen.add(node_key)
         if re.search(r'синхронн\w*\s+перевод|simultaneous|рабочи\w*\s+язык|working languages|(?:доклад|выступлен|presentation).{0,80}(?:английск|english|китайск|chinese)',blob,re.I):
             evidence.append({'text':blob,'url':url,'edition_year':year,'checked_at':stamp()})
-        named_person=bool(node.select_one('[class*="persname"], [class*="person-name"], [class*="lecturer-name"], h3, h4'))
+        name_selector='[itemprop="name"],[class*="persname"],[class*="speaker"][class*="name"],[class*="person-name"],[class*="lecturer-name"],.speaker-item-content-top > .text,h2,h3,h4,.text-h5'
+        named_person=bool(node.select_one(name_selector))
         speaker_context=bool(re.search(r'(?:спикер|докладчик|эксперт|speaker).{0,60}(?:из\s|from\s)|(?:иностранн|зарубежн).{0,25}(?:спикер|докладчик)',blob,re.I) or re.search('speaker',' '.join(node.get('class',[])),re.I) or (speaker_page and named_person))
-        if speaker_context and re.search(r'Китай|КНР|Индия|Индии|Иран|Бразил|Турци|Япони|Кореи|Германи|Франци|Итали|Великобритани|США|Канада|Канады|ОАЭ|Египет|China|India|Iran|Brazil|Turkey|Japan|Korea|Germany|France|Italy|Canada|USA|UAE',blob,re.I):
-            name=node.select_one('[class*="persname"], [class*="person-name"], [class*="lecturer-name"], h3, h4')
+        if speaker_context and COUNTRY_RE.search(blob):
+            name=node.select_one(name_selector)
             evidence.append({'text':blob,'url':url,'edition_year':year,'checked_at':stamp(),'kind':'foreign_speaker',
                              'speaker_name':clean(name.get_text(' ',strip=True)) if name else '',
                              'participation_status':'invited' if re.search('приглашенн',page_heading,re.I) else 'listed'})
-    return evidence
+    return sorted(evidence,key=lambda p:(0 if p.get('speaker_name') else 1,len(p['text'])))
 
 
 def related_evidence(html,url,event):
