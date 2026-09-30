@@ -27,6 +27,8 @@ def merge_live(existing,incoming):
         for key in ('source_urls','sources'):
             field='organizer_url' if key=='source_urls' else 'source'
             old[key]=list(dict.fromkeys(old.get(key,[old.get(field,'')])+item.get(key,[item.get(field,'')])))
+        if item.get('source','').endswith('_official'):
+            old['organizer_url']=item['organizer_url']
         for key in ('date_evidence','source_checked_at','parent_event_url'):
             if item.get(key):old[key]=item[key]
         if item.get('vertical') and item.get('source') in {'ict2go','conferos','tadviser_calendar','ict_moscow','cnews_conferences','comnews_conferences'}:
@@ -43,7 +45,7 @@ async def enrich_rows(events,limit=100,ids=None):
     if ids:candidates=[e for e in candidates if str(e.get('id')) in ids]
     candidates=[e for e in candidates if not is_hub(e['organizer_url'])]
     import re
-    candidates.sort(key=lambda e:(bool(e.get('description_checked_at')),0 if e.get('source') in {'tadviser_calendar','conferos','tadviser'} else 1,
+    candidates.sort(key=lambda e:(e.get('language_checked_at','')[:10]==today().isoformat(),e.get('language_rule_version',0)>=2,bool(e.get('description_checked_at')),0 if e.get('source') in {'tadviser_calendar','conferos','tadviser'} else 1,
                                    0 if re.search('международ|спикер|перевод|speaker',e.get('title','')+' '+e.get('description',''),re.I) else 1,
                                    bool(e.get('description')),e.get('starts_at','')))
     candidates=candidates[:limit]
@@ -89,6 +91,7 @@ async def enrich_rows(events,limit=100,ids=None):
                             for k in ('description','description_source','description_checked_at'):e[k]=facts[k]
                             result['summary_chars']=len(facts['description'])
                         if facts.get('language_evidence'):e['language_evidence']=facts['language_evidence']
+                        e['language_checked_at']=stamp();e['language_rule_version']=2
                         if facts.get('child_event_urls'):e['child_event_urls']=facts['child_event_urls']
                         if facts.get('city'):e['city']=facts['city']
                         if facts.get('country') in ('RU','Россия','Russia'):e['country']='Россия'

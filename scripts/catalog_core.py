@@ -46,6 +46,7 @@ def title_key(value):
     text = re.sub(r'(?:18\+|\+18)', ' ', text)
     text = re.sub(r'\bх\b', 'x', text)
     text = re.sub(r'\bежегодн[а-я]*\b', ' ', text)
+    text = re.sub(r'биопром\s*:\s*промышленность и технологии для человека', 'биопром', text)
     return re.sub(r'[^a-zа-я0-9]+', ' ', text).strip()
 
 def title_match(a, b):
@@ -138,6 +139,8 @@ def assess_translation(event, evidence=None):
     base={'audience':'unknown','translation_status':'unknown','translation_evidence':[]}
     if event.get('country') not in ('Россия','РФ','Russian Federation','Russia'):
         return {**base,'translation_status':'outside_russia'}
+    if re.search(r'Великобритани|Германи|Франци|Итали|Казахстан|Беларус|Узбекистан|Кыргызстан|Турци|Серби|Лондон|Белград|Париж|Дубай|Стамбул|Алматы|Астана|Ташкент|Минск|Сеул',event.get('city',''),re.I):
+        return {**base,'translation_status':'venue_conflict'}
     year=(event.get('starts_at') or '')[:4]
     qualified=[]
     for item in evidence or event.get('language_evidence') or []:

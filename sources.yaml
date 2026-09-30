@@ -754,3 +754,12 @@ sources:
   region: РФ
   enabled: true
   fallback_links: false
+- id: bioprom_official
+  name: 'БИОПРОМ: официальный сайт и программа'
+  type: html
+  kind: event
+  url: https://biopromforum.ru/
+  topic: industry
+  region: РФ
+  enabled: true
+  fallback_links: false

@@ -29,14 +29,27 @@ def schema_events(soup):
 
 def language_evidence(soup,url,year):
     evidence=[]
-    for node in soup.select('p,li,.languages,.translation,[class*="speaker"],[class*="Speaker"]'):
+    page_heading=' '.join(clean(n.get_text(' ',strip=True)) for n in soup.select('title,h1'))
+    speaker_page=bool(re.search(r'спикер|лектор|докладчик|speaker|lecturer',page_heading,re.I))
+    seen=set()
+    for node in soup.select('p,li,.languages,.translation,.tn-atom,.t-descr,.t-text,[class*="speaker"],[class*="Speaker"],[class*="lecturer"],[class*="itemwrapper"]'):
         blob=clean(node.get_text(' ',strip=True))
-        if len(blob)>1000:continue
+        if not blob or len(blob)>1000:continue
+        section_heading=node.find_previous('h2')
+        section_years=set(re.findall(r'\b20\d{2}\b',clean(section_heading.get_text(' ',strip=True)))) if section_heading else set()
+        if section_years and year not in section_years:continue
+        node_key=blob.lower()
+        if node_key in seen:continue
+        seen.add(node_key)
         if re.search(r'синхронн\w*\s+перевод|simultaneous|рабочи\w*\s+язык|working languages|(?:доклад|выступлен|presentation).{0,80}(?:английск|english|китайск|chinese)',blob,re.I):
             evidence.append({'text':blob,'url':url,'edition_year':year,'checked_at':stamp()})
-        speaker_context=bool(re.search(r'(?:спикер|докладчик|эксперт|speaker).{0,60}(?:из\s|from\s)|(?:иностранн|зарубежн).{0,25}(?:спикер|докладчик)',blob,re.I) or re.search('speaker',' '.join(node.get('class',[])),re.I))
+        named_person=bool(node.select_one('[class*="persname"], [class*="person-name"], [class*="lecturer-name"], h3, h4'))
+        speaker_context=bool(re.search(r'(?:спикер|докладчик|эксперт|speaker).{0,60}(?:из\s|from\s)|(?:иностранн|зарубежн).{0,25}(?:спикер|докладчик)',blob,re.I) or re.search('speaker',' '.join(node.get('class',[])),re.I) or (speaker_page and named_person))
         if speaker_context and re.search(r'Китай|КНР|Индия|Индии|Иран|Бразил|Турци|Япони|Кореи|Германи|Франци|Итали|Великобритани|США|Канада|Канады|ОАЭ|Египет|China|India|Iran|Brazil|Turkey|Japan|Korea|Germany|France|Italy|Canada|USA|UAE',blob,re.I):
-            evidence.append({'text':blob,'url':url,'edition_year':year,'checked_at':stamp(),'kind':'foreign_speaker'})
+            name=node.select_one('[class*="persname"], [class*="person-name"], [class*="lecturer-name"], h3, h4')
+            evidence.append({'text':blob,'url':url,'edition_year':year,'checked_at':stamp(),'kind':'foreign_speaker',
+                             'speaker_name':clean(name.get_text(' ',strip=True)) if name else '',
+                             'participation_status':'invited' if re.search('приглашенн',page_heading,re.I) else 'listed'})
     return evidence
 
 
@@ -71,6 +84,16 @@ def extract_facts(html,url,event):
         from event_engine import parse_date
         start=parse_date(schema['startDate']);end=parse_date(schema.get('endDate')) or start
         date_text=str(schema['startDate'])
+    if not start:
+        # Tilda and similar pages often put the event date in the hero, not H1.
+        # Accept a short explicit-year date matching this edition, never a footer year.
+        for node in soup.select('time,strong,[class*="date"],.tn-atom'):
+            candidate=clean(node.get_text(' ',strip=True))
+            if len(candidate)>160 or not re.search(r'\b20\d{2}\b',candidate):continue
+            if re.search(r'регистрац|прием заяв|приём заяв|дедлайн|deadline',candidate,re.I):continue
+            a,b=extract_event_dates(candidate)
+            if a and a.date().isoformat()==event.get('starts_at'):
+                start,end,date_text=a,b,candidate;break
     # Only compare years from the actual event header / schema, not historical paragraphs.
     header_years={y for title in titles[:1] for y in re.findall(r'\b20\d{2}\b',title)}
     # "Итоги года и планы 2027" names the planning horizon, not the edition.
@@ -130,7 +153,10 @@ def extract_facts(html,url,event):
         label=clean(a.get_text(' ',strip=True));href=urljoin(url,a['href'])
         if a['href'].startswith('#') or href.lower().endswith('.pdf'):continue
         if urlsplit(href).netloc != host:continue
-        if re.fullmatch(r'программа(?: конференции| форума)?|спикеры|докладчики|условия участия|program(?:me)?|speakers',label,re.I):
+        label_years=set(re.findall(r'\b20\d{2}\b',label+' '+urlsplit(href).path))
+        if label_years and year not in label_years:continue
+        if re.search(r'архив|archive|партнер|партнёр|спонсор|волонтер|волонтёр',label+' '+href,re.I):continue
+        if re.search(r'программ|расписани|спикер|докладчик|лектор|условия участия|program(?:me)?|speakers|lecturers|schedule',label,re.I):
             if canonical_url(href)!=canonical_url(url) and href not in related:related.append(href)
     official=''
     if 'tadviser.ru' in host:
@@ -151,4 +177,4 @@ def extract_facts(html,url,event):
     return {'ok':True,'description':description,'description_source':url,'description_checked_at':stamp(),'child_event_urls':children,
             'language_evidence':evidence,'date_start':start.date().isoformat() if start else None,
             'date_end':end.date().isoformat() if end else None,'date_evidence':date_text,
-            'city':location,'country':country,'official_url':official,'related_urls':related[:2] if edition_valid else []}
+            'city':location,'country':country,'official_url':official,'related_urls':sorted(related,key=lambda u:0 if re.search('speaker|lecturer',u,re.I) else 1)[:3] if edition_valid else []}

@@ -849,7 +849,7 @@ def enrich_by_id(event_id: Any) -> dict:
         return {"ok": False, "error": "not_found"}
     # Cache validated pages for a day, then check for changed editions/programmes.
     checked = base.get('description_checked_at', '')
-    if checked and checked[:10] == datetime.now().strftime('%Y-%m-%d') and base.get('description'):
+    if checked and checked[:10] == datetime.now().strftime('%Y-%m-%d') and base.get('description') and base.get('language_rule_version',0)>=2:
         return {"ok": True, "summary": base['description'], "cached": True}
     result = asyncio.run(enrich_rows([base], limit=1))
     if not result or not result[0].get('ok'):

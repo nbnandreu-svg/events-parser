@@ -10,19 +10,27 @@
     "date_status": "confirmed",
     "organizer_url": "https://all-events.ru/events/predakselerator_tochki_kipeniya_sankt_peterburg_",
     "source": "all_events",
-    "description": "",
+    "description": "Программа построена вокруг трех ключевых блоков:Фундаментальная сборка. Авторский курс, охватывающий три этапа жизни стартапа — от идеи до масштаба. Практический нетворкинг и упаковка проекта.",
     "date_evidence": "2026-09-24T00:00:00+03:00 2026-11-12T00:00:00+03:00",
     "source_checked_at": "2026-10-01T00:54:18+03:00",
     "audience": "unknown",
     "translation_status": "unknown",
     "translation_evidence": [],
     "source_urls": [
-      "https://all-events.ru/events/predakselerator_tochki_kipeniya_sankt_peterburg_"
+      "https://all-events.ru/events/predakselerator_tochki_kipeniya_sankt_peterburg_",
+      "https://all-events.ru/events/predakselerator_tochki_kipeniya_sankt_peterburg_/"
     ],
     "sources": [
       "all_events"
     ],
-    "id": "ev-e63b4c89db3fa0de"
+    "id": "ev-e63b4c89db3fa0de",
+    "description_source": "https://all-events.ru/events/predakselerator_tochki_kipeniya_sankt_peterburg_/",
+    "description_checked_at": "2026-10-01T01:20:49+03:00",
+    "detail_check": {
+      "at": "2026-10-01T01:20:49+03:00",
+      "ok": true,
+      "reason": ""
+    }
   },
   {
     "title": "Московская неделя моды 2026",
@@ -210,7 +218,7 @@
     "organizer_url": "https://totalexpo.ru/expo/5514.aspx",
     "source": "totalexpo",
     "description": "Выставка станков, оборудования для обработки металла, сварки, резки, технологий сверления, контроля качества и испытательного оборудования.",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://totalexpo.ru/expo/5514.aspx"
@@ -663,7 +671,7 @@
     "source_urls": [
       "https://totalexpo.ru/expo/10491.aspx"
     ],
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "detail_check": {
       "at": "2026-10-01T01:00:38+03:00",
@@ -746,7 +754,7 @@
     "organizer_url": "https://totalexpo.ru/expo/5258.aspx",
     "source": "totalexpo",
     "description": "Выставка для декораторов, дизайнеров, кто ищет необычные предметы антиквариата и текстиля. Многообразие английского и европейского антиквариата, оригинальные вещи XX века и произведения искусства всех периодов, включая наши дни.",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://totalexpo.ru/expo/5258.aspx"
@@ -1932,7 +1940,7 @@
     "date_evidence": "2026-10-01T00:00:00+03:00 2026-10-01T00:00:00+03:00",
     "source_checked_at": "2026-10-01T00:54:18+03:00",
     "audience": "unknown",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://ict2go.ru/events/72605",
@@ -4601,7 +4609,7 @@
     ],
     "date_evidence": "05.10.2026 | Астана (Нур-Султан)",
     "source_checked_at": "2026-10-01T00:41:53+03:00",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "id": "ev-e31e2bcb5a406fe8"
   },
@@ -4637,36 +4645,74 @@
     "vertical": "apk",
     "type": "Форум",
     "date_status": "confirmed",
-    "organizer_url": "https://agroxxi.ru/anonsy/iii-mezhdunarodnyi-forum-bioprom-proidet-5-6-oktjabrja-v-gelendzhike.html",
+    "organizer_url": "https://biopromforum.ru",
     "source": "agroxxi_anonsy_more",
-    "description": "Международный форум «БИОПРОМ: промышленность и технологии для человека» завершил свою работу в Геленджике. Главное мероприятие года, посвященное улучшению качества жизни человека с помощью развития технологий в медицине, фармацевтике, косметике, пищевой индустрии и сельском хозяйстве, а также экологии, уже во второй раз объединило представителей органов государственной власти, бизнеса и научного сообщества.",
-    "date_evidence": "III Международный форум БИОПРОМ пройдет 5–6 октября в Геленджике",
-    "source_checked_at": "2026-10-01T00:41:53+03:00",
-    "audience": "unknown",
-    "translation_status": "unknown",
-    "translation_evidence": [],
+    "description": "Международный форум |5-6 октября 2026| Геленджик Арена.",
+    "date_evidence": "5–6 октября 2026",
+    "source_checked_at": "2026-10-01T01:28:51+03:00",
+    "audience": "intl",
+    "translation_status": "potential",
+    "translation_evidence": [
+      {
+        "text": "Марьям Матар основатель, Ассоциация по борьбе с генетическими заболеваниями ОАЭ, создатель генетической карты ОАЭ",
+        "url": "http://biopromforum.ru/speakers2026",
+        "edition_year": "2026",
+        "checked_at": "2026-10-01T01:29:00+03:00",
+        "kind": "foreign_speaker",
+        "speaker_name": "Марьям Матар",
+        "participation_status": "invited",
+        "level": "potential"
+      }
+    ],
     "source_urls": [
       "https://agroxxi.ru/anonsy/iii-mezhdunarodnyi-forum-bioprom-proidet-5-6-oktjabrja-v-gelendzhike.html",
       "https://agroinvestor.ru/afisha/2026/bioprom-promyshlennost-i-texnologii-dlya-cheloveka",
       "https://agroxxi.ru/anonsy/bioprom-2026-otkryl-registraciyu-iii-mezhdunarodnyi-forum-proidet-5-6-oktjabrja-v-gelendzhike.html",
       "https://agbz.ru/exhibition/forum-bioprom",
-      "https://www.agroinvestor.ru/afisha/2026/bioprom-promyshlennost-i-texnologii-dlya-cheloveka/"
+      "https://www.agroinvestor.ru/afisha/2026/bioprom-promyshlennost-i-texnologii-dlya-cheloveka/",
+      "https://biopromforum.ru/",
+      "https://ict2go.ru/events/67027",
+      "https://biopromforum.ru"
     ],
     "sources": [
       "agroxxi_anonsy_more",
       "agroinvestor_afisha",
       "agroxxi_anonsy",
-      "agbz_events"
+      "agbz_events",
+      "bioprom_official",
+      "agroinvestor",
+      "ict2go"
     ],
     "id": "ev-08760293f2ce186b",
-    "description_source": "https://www.agroinvestor.ru/afisha/2026/bioprom-promyshlennost-i-texnologii-dlya-cheloveka/",
-    "description_checked_at": "2026-10-01T00:54:41+03:00",
+    "description_source": "https://biopromforum.ru",
+    "description_checked_at": "2026-10-01T01:28:59+03:00",
     "detail_check": {
-      "at": "2026-10-01T00:54:24+03:00",
+      "at": "2026-10-01T01:29:00+03:00",
       "ok": true,
       "reason": ""
     },
-    "language_evidence": []
+    "language_evidence": [
+      {
+        "text": "Марьям Матар основатель, Ассоциация по борьбе с генетическими заболеваниями ОАЭ, создатель генетической карты ОАЭ",
+        "url": "http://biopromforum.ru/speakers2026",
+        "edition_year": "2026",
+        "checked_at": "2026-10-01T01:29:00+03:00",
+        "kind": "foreign_speaker",
+        "speaker_name": "Марьям Матар",
+        "participation_status": "invited"
+      },
+      {
+        "text": "Д-р Ван Ши Хэ врач традиционной китайской медицины",
+        "url": "http://biopromforum.ru/speakers2026",
+        "edition_year": "2026",
+        "checked_at": "2026-10-01T01:29:00+03:00",
+        "kind": "foreign_speaker",
+        "speaker_name": "Д-р Ван Ши Хэ",
+        "participation_status": "invited"
+      }
+    ],
+    "language_checked_at": "2026-10-01T01:29:00+03:00",
+    "language_rule_version": 2
   },
   {
     "title": "OMR 2026",
@@ -4718,48 +4764,6 @@
       "expomap"
     ],
     "id": "ev-bd7ef8c304a8f128"
-  },
-  {
-    "title": "Биопром: промышленность и технологии для человека 2026",
-    "starts_at": "2026-10-05",
-    "ends_at": "2026-10-06",
-    "city": "Геленджик",
-    "country": "Россия",
-    "audience": "unknown",
-    "vertical": "apk",
-    "type": "Форум",
-    "date_status": "confirmed",
-    "organizer_url": "https://agroinvestor.ru/afisha/2026/bioprom-promyshlennost-i-texnologii-dlya-cheloveka",
-    "source": "agroinvestor",
-    "description": "Международный форум «БИОПРОМ: промышленность и технологии для человека» завершил свою работу в Геленджике. Главное мероприятие года, посвященное улучшению качества жизни человека с помощью развития технологий в медицине, фармацевтике, косметике, пищевой индустрии и сельском хозяйстве, а также экологии, уже во второй раз объединило представителей органов государственной власти, бизнеса и научного сообщества.",
-    "description_source": "https://www.agroinvestor.ru/afisha/2026/bioprom-promyshlennost-i-texnologii-dlya-cheloveka/",
-    "description_checked_at": "2026-10-01T00:42:17+03:00",
-    "date_evidence": "2026-10-05",
-    "source_urls": [
-      "https://www.agroinvestor.ru/afisha/2026/bioprom-promyshlennost-i-texnologii-dlya-cheloveka/",
-      "https://agroinvestor.ru/afisha/2026/bioprom-promyshlennost-i-texnologii-dlya-cheloveka",
-      "https://ict2go.ru/events/67027"
-    ],
-    "translation_status": "unknown",
-    "translation_evidence": [],
-    "detail_check": {
-      "at": "2026-10-01T00:42:17+03:00",
-      "ok": true,
-      "reason": ""
-    },
-    "sources": [
-      "agroinvestor",
-      "ict2go"
-    ],
-    "id": "ev-bf094a777cdc6b94",
-    "date_alternatives": [
-      {
-        "starts_at": "2026-10-05",
-        "ends_at": "2026-10-05",
-        "url": "https://ict2go.ru/events/67027"
-      }
-    ],
-    "language_evidence": []
   },
   {
     "title": "Всероссийская олимпиада по искусственному интеллекту 2026. Сбор заявок",
@@ -7865,7 +7869,7 @@
     ],
     "date_evidence": "07.10.2026 | Астана (Нур-Султан)",
     "source_checked_at": "2026-10-01T00:41:53+03:00",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "id": "ev-37c7eb1eeb23d068"
   },
@@ -8031,7 +8035,7 @@
     "date_evidence": "07.10.2026 | Астана (Нур-Султан)",
     "source_checked_at": "2026-10-01T00:41:53+03:00",
     "audience": "unknown",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://ict2go.ru/events/65601"
@@ -13603,7 +13607,7 @@
     ],
     "date_evidence": "14.10.2026 | Астана (Нур-Султан)",
     "source_checked_at": "2026-10-01T00:41:53+03:00",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "id": "ev-71387f867be65dab",
     "description_source": "https://silkway-industrial.kz/ru/",
@@ -14615,7 +14619,7 @@
     "date_evidence": "15.10.2026 | Алматы",
     "source_checked_at": "2026-10-01T00:41:53+03:00",
     "audience": "unknown",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://ict2go.ru/events/71301"
@@ -18016,7 +18020,7 @@
       "ok": false,
       "reason": "title_mismatch"
     },
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://kazfarm.kz"
@@ -18209,7 +18213,7 @@
     "organizer_url": "https://exponet.ru/exhibitions/by-id/aipsal/aipsal2026/index.ru.html",
     "source": "exponet_future",
     "description": "Выставка Securex Kazakhstan - 2026 в Алматы. 14-я Казахстанская Международная Выставка «Безопасность, Противопожарная защита, Информационные технологии, Связь и Дроны».",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://exponet.ru/exhibitions/by-id/aipsal/aipsal2026/index.ru.html"
@@ -18502,7 +18506,7 @@
     "date_evidence": "21.10.2026 | Алматы",
     "source_checked_at": "2026-10-01T00:41:53+03:00",
     "audience": "unknown",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://ict2go.ru/events/65604"
@@ -18562,7 +18566,7 @@
     ],
     "date_evidence": "21.10.2026 | Алматы",
     "source_checked_at": "2026-10-01T00:41:53+03:00",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "id": "ev-9e6acebcf46bec16",
     "detail_check": {
@@ -18636,7 +18640,7 @@
     "date_evidence": "21 Октября - 23 Октября",
     "source_checked_at": "2026-10-01T00:41:53+03:00",
     "audience": "unknown",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://agbz.ru/exhibition/vystavka-kazagrofarm"
@@ -18667,7 +18671,7 @@
     ],
     "date_evidence": "21.10.2026 | Алматы",
     "source_checked_at": "2026-10-01T00:41:53+03:00",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "id": "ev-b48d136b1c53b53c"
   },
@@ -19032,7 +19036,7 @@
     "date_evidence": "21.10.2026 | Алматы",
     "source_checked_at": "2026-10-01T00:41:53+03:00",
     "audience": "unknown",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://ict2go.ru/events/65603"
@@ -22344,7 +22348,7 @@
     "date_evidence": "28.10.2026 | Алматы",
     "source_checked_at": "2026-10-01T00:41:53+03:00",
     "audience": "unknown",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://ict2go.ru/events/65605"
@@ -22413,7 +22417,7 @@
     "organizer_url": "https://exponet.ru/exhibitions/by-id/agroworldal/agroworldal2026/index.ru.html",
     "source": "exponet_future",
     "description": "Выставка Agroworld Qazaqstan - 2026 в Алматы.",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://exponet.ru/exhibitions/by-id/agroworldal/agroworldal2026/index.ru.html",
@@ -22671,7 +22675,7 @@
     "date_evidence": "28 - 30 октября 2026",
     "source_checked_at": "2026-10-01T00:41:53+03:00",
     "audience": "unknown",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://zol.ru/events?id=6975"
@@ -25207,7 +25211,7 @@
     "date_evidence": "03.11.2026 | Ташкент",
     "source_checked_at": "2026-10-01T00:41:53+03:00",
     "audience": "unknown",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://ict2go.ru/events/67939"
@@ -25232,7 +25236,7 @@
     "date_evidence": "03.11.2026 | Ташкент",
     "source_checked_at": "2026-10-01T00:41:53+03:00",
     "audience": "unknown",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://ict2go.ru/events/70921"
@@ -25280,7 +25284,7 @@
     "date_evidence": "03.11.2026 | Алматы",
     "source_checked_at": "2026-10-01T00:41:53+03:00",
     "audience": "unknown",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://ict2go.ru/events/71886"
@@ -25305,7 +25309,7 @@
     "date_evidence": "03.11.2026 | Ташкент",
     "source_checked_at": "2026-10-01T00:41:53+03:00",
     "audience": "unknown",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://ict2go.ru/events/71887"
@@ -25514,7 +25518,7 @@
     "date_evidence": "04.11.2026 | Астана (Нур-Султан)",
     "source_checked_at": "2026-10-01T00:41:53+03:00",
     "audience": "unknown",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://ict2go.ru/events/65433"
@@ -25943,7 +25947,7 @@
     "date_evidence": "05.11.2026 | Астана (Нур-Султан)",
     "source_checked_at": "2026-10-01T00:41:53+03:00",
     "audience": "unknown",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://ict2go.ru/events/71889"
@@ -26654,7 +26658,7 @@
     "date_evidence": "10.11.2026 | Ташкент",
     "source_checked_at": "2026-10-01T00:41:53+03:00",
     "audience": "unknown",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://ict2go.ru/events/66727"
@@ -27701,7 +27705,7 @@
     "organizer_url": "https://exponet.ru/exhibitions/by-id/worldfoodal/worldfoodal2026/index.ru.html",
     "source": "exponet_future",
     "description": "Выставка FoodExpo Qazaqstan 2026 проводится c 11 по 13 ноября в городе Алматы, Казахстан. Основные тематические направления мероприятия: Напитки, Пищевое оборудование, Чай, Кофе, Хлебобулочные изделия, Кондитерские изделия, Морепродукты, Мясная промышленность, Продукты питания, Технологии пищевого производства. С перечнем экспонатов и разделов выставки можно ознакомиться в блоке «Дополнительная информация».",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://exponet.ru/exhibitions/by-id/worldfoodal/worldfoodal2026/index.ru.html",
@@ -27833,7 +27837,7 @@
     "date_evidence": "11.11.2026 | Алматы",
     "source_checked_at": "2026-10-01T00:41:53+03:00",
     "audience": "unknown",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://ict2go.ru/events/65610"
@@ -28007,7 +28011,7 @@
     "date_evidence": "11.11.2026 | Астана (Нур-Султан)",
     "source_checked_at": "2026-10-01T00:41:53+03:00",
     "audience": "unknown",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://ict2go.ru/events/71813"
@@ -29096,7 +29100,7 @@
     "date_evidence": "2026-11-12T00:00:00+05:00",
     "source_checked_at": "2026-10-01T00:41:53+03:00",
     "audience": "unknown",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://ict2go.ru/events/70803",
@@ -30393,7 +30397,7 @@
     "organizer_url": "https://exponet.ru/exhibitions/by-id/logipackta/logipackta2026/index.ru.html",
     "source": "exponet_future",
     "description": "foodsmi пищевая отрасль. Ташкент (Узбекистан), «UzAgroExpo-2026», «UzProdExpo-2026», «InterPackExpo-2026».",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://exponet.ru/exhibitions/by-id/logipackta/logipackta2026/index.ru.html",
@@ -30593,7 +30597,7 @@
     "organizer_url": "https://ieg.uz/uzagroexpo",
     "source": "tsenovik",
     "description": "17-19 ноября 2026 года в Ташкенте ( НВК «УзЭкспоЦентр» ) пройдут три выставочных мероприятия: XХI Международная выставка «UzAgroExpo - Сельское хозяйство»; XХI Международная выставка «UzProdExpo - Пищевая промышленность» и IХ Международная выставка «InterPackExpo–Упаковочная промышленность». Организатор - выставочная компания ООО «International Expo Group».",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://ieg.uz/uzagroexpo",
@@ -30877,7 +30881,7 @@
     "organizer_url": "https://foodsmi.com/events/minsk-belarus-prodexpo-2026",
     "source": "foodsmi",
     "description": "foodsmi пищевая отрасль. Минск (Беларусь), PRODEXPO-2026.",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://foodsmi.com/events/minsk-belarus-prodexpo-2026"
@@ -31467,7 +31471,7 @@
       "https://all-events.ru/events/caex-build-construction/",
       "https://all-events.ru/events/caex-build-construction"
     ],
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "detail_check": {
       "at": "2026-10-01T00:43:11+03:00",
@@ -33284,7 +33288,7 @@
     "date_evidence": "25 Ноября - 27 Ноября",
     "source_checked_at": "2026-10-01T00:41:53+03:00",
     "audience": "unknown",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://agbz.ru/exhibition/vystavka-agroexpo-uzbekistan"
@@ -35930,7 +35934,7 @@
     "organizer_url": "https://kudabiz.ru/event/imtech-2026",
     "source": "kudabiz",
     "description": "Вы хотите быть в центре инноваций и технологий? Не упустите уникальную возможность стать участником выставки IMTECH 2026 в Ташкенте! Это событие, которое изменит ваше представление о бизнесе в области промышленных технологий и материалов.",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://kudabiz.ru/event/imtech-2026"
@@ -38165,7 +38169,7 @@
     "organizer_url": "https://kudabiz.ru/event/caex-food-horeca",
     "source": "kudabiz",
     "description": "Вас интересует, как вывести свой бизнес в сфере продуктов питания и HoReCa на новый уровень? Тогда международная выставка CAEx Food & HoReCa в Узбекистане 4 февраля 2027 года — это то, что вам нужно! Уникальная возможность соединить производителей, поставщиков и представителей индустрии гостеприимства на одной площадке ждет вас!",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://kudabiz.ru/event/caex-food-horeca"
@@ -45931,7 +45935,7 @@
     "organizer_url": "https://kudabiz.ru/event/caex-mebel-d-cor-2027",
     "source": "kudabiz",
     "description": "С 20 по 22 мая 2027 года в Ташкенте пройдет международная выставка CAEx Mebel & Décor, которая соберет лучших производителей, поставщиков и дизайнеров. Это уникальная возможность для вас узнать о новейших тенденциях, познакомиться с инновациями и наладить важные деловые контакты.",
-    "translation_status": "unknown",
+    "translation_status": "venue_conflict",
     "translation_evidence": [],
     "source_urls": [
       "https://kudabiz.ru/event/caex-mebel-d-cor-2027"

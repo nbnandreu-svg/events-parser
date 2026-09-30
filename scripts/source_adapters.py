@@ -6,6 +6,18 @@ from urllib.parse import urljoin
 def parse_special(source,soup):
     from event_engine import clean_text, make_item, extract_event_dates
     sid=source['id']
+    if sid=='bioprom_official':
+        # The organiser publishes the event date in a Tilda hero, outside H1.
+        for node in soup.select('strong,.tn-atom'):
+            blob=clean_text(node.get_text(' ',strip=True))
+            if len(blob)>100 or not re.search(r'\d{1,2}\s*[–—-]\s*\d{1,2}\s+октября\s+20\d{2}',blob,re.I):continue
+            start,end=extract_event_dates(blob)
+            if not start:continue
+            row=make_item(source=source,title=f'БИОПРОМ {start.year}',url=source['url'],published_at=start,date_end=end,
+                location='Геленджик',event_type='форум',date_evidence=blob)
+            row.country='Россия'
+            return [row]
+        return []
     if sid.startswith('expomap_'):
         from page_facts import schema_events
         from event_engine import parse_date

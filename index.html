@@ -503,7 +503,7 @@
     margin-left: auto;
     margin-right: auto;
   }
-  .empty-state[hidden] { display: none !important; }
+  .empty-state[hidden], #list-more-wrap[hidden] { display: none !important; }
 
   /* Calendar */
   .cal-toolbar {
@@ -1583,6 +1583,9 @@
       var label = e.translationStatus === "confirmed" ? "На странице мероприятия указан синхронный перевод" :
         (e.translationStatus === "potential" ? "Есть иностранные спикеры или доклады на иностранном языке" : "Данных о языках выступлений и переводе пока нет");
       var proofs = (e.translationEvidence || []).filter(function (x) { return /^https?:\/\//i.test(x.url || ""); });
+      if (e.translationStatus === "potential" && proofs.some(function (x) { return x.participation_status === "invited"; })) {
+        label = "Приглашен иностранный спикер. Потребность в переводе стоит уточнить.";
+      }
       proofNode.innerHTML = '<div class="drawer-field__label">Языки и перевод</div><div class="drawer-field__value">' + escapeHtml(label) + '</div>' +
         proofs.map(function (x) { return '<p style="font-size:13px">' + escapeHtml(x.text) + ' <a target="_blank" rel="noopener noreferrer" href="' + escapeHtml(x.url) + '">Источник</a></p>'; }).join("");
     }
