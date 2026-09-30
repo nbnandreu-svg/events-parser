@@ -21,7 +21,7 @@ from ingest_round2 import (
 from ingest_round3 import dedupe_key
 from ingest_apk_sprint import SOFT_APK_RE
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parent.parent
 SAMPLES = ROOT / "samples"
 SAMPLES.mkdir(exist_ok=True)
 

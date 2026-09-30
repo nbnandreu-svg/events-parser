@@ -16,8 +16,8 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent
-sys.path.insert(0, str(ROOT))
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from enrich_summaries import write_catalog, is_real_summary  # noqa: E402
 
 JSON_PATH = ROOT / "events_upcoming.json"

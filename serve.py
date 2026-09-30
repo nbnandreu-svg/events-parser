@@ -13,9 +13,9 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 ROOT = Path(__file__).resolve().parent
-PORT = 8765
+PORT = int(os.environ.get("PARSER_PORT", "8765"))
 _refresh_lock = threading.Lock()
-sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "scripts"))
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -61,45 +61,10 @@ class Handler(SimpleHTTPRequestHandler):
             self._json(409, {"ok": False, "error": "refresh_in_progress"})
             return
         try:
-            py = ROOT / ".venv" / "bin" / "python"
-            if not py.exists():
-                py = Path(sys.executable)
-            env = os.environ.copy()
-            env.setdefault("SKIP_PW", "1")
-            proc = subprocess.run(
-                [str(py), str(ROOT / "refresh_catalog.py")],
-                cwd=str(ROOT),
-                capture_output=True,
-                text=True,
-                timeout=300,
-                env=env,
-            )
-            out = (proc.stdout or "") + (proc.stderr or "")
-            count = 0
-            updated_at = datetime.now().strftime("%Y-%m-%d %H:%M")
-            try:
-                start = (proc.stdout or "").find("{")
-                end = (proc.stdout or "").find("\nFINAL")
-                blob = (proc.stdout or "")[start:end] if start >= 0 else ""
-                if blob.strip():
-                    stats = json.loads(blob)
-                    count = stats.get("count") or stats.get("after") or 0
-                    updated_at = stats.get("updated_at") or updated_at
-                else:
-                    import re
-                    text = (ROOT / "events-data.js").read_text(encoding="utf-8")
-                    m = re.search(r"window\.EVENTS_META\s*=\s*(\{.*?\});", text, re.S)
-                    if m:
-                        meta = json.loads(m.group(1))
-                        count = meta.get("count", 0)
-                        updated_at = meta.get("updated_at", updated_at)
-            except Exception:
-                pass
-            ok = proc.returncode == 0
-            self._json(
-                200 if ok else 500,
-                {"ok": ok, "count": count, "updated_at": updated_at, "log_tail": out[-1500:]},
-            )
+            from refresh_catalog import refresh
+            result = refresh()
+            self._json(200, {"ok": True, "count": result["count"], "updated_at": result["updated_at"],
+                             "source_errors": result["source_errors"], "international_count": result["international_count"]})
         except Exception as e:
             self._json(500, {"ok": False, "error": str(e)})
         finally:
@@ -119,7 +84,7 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 def main():
-    httpd = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
+    httpd = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
     print(f"Serving {ROOT} on http://127.0.0.1:{PORT}/  (POST /api/refresh, GET /api/enrich)")
     try:
         httpd.serve_forever()

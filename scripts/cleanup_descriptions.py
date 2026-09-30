@@ -12,8 +12,8 @@ import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent
-sys.path.insert(0, str(ROOT))
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from enrich_summaries import (  # noqa: E402
     _norm,

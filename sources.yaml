@@ -1,0 +1,756 @@
+sources:
+- id: agroinvestor_afisha
+  name: Агроинвестор — афиша
+  type: html
+  kind: event
+  url: https://www.agroinvestor.ru/afisha/
+  category: мероприятие
+  region: РФ
+  enabled: true
+  selectors:
+    item: .upcoming-event, .event-card
+    title: .event-title, h3, h4
+    link: a.upcoming-event, a.event-card__link, a.event-card__title-link, a
+    date: .date, .event-card__details-item.date
+    location: .place, .event-card__details-item.place
+    event_type: .type, .event-card__details-item.type
+    summary: .upcoming-event__text, .event-card__text, p
+- id: agroinvestor_catalog
+  name: Агроинвестор — каталог афиши
+  type: html
+  kind: event
+  url: https://www.agroinvestor.ru/afisha/catalog/
+  extra_urls:
+  - https://www.agroinvestor.ru/afisha/catalog/?page=2
+  - https://www.agroinvestor.ru/afisha/catalog/?page=3
+  category: мероприятие
+  region: РФ
+  enabled: true
+  selectors:
+    item: .event-card, .upcoming-event, article
+    title: .event-title, h3, h4, a
+    link: a.event-card__link, a.event-card__title-link, a
+    date: .date, .event-card__details-item.date
+    location: .place
+    event_type: .type
+    summary: .event-card__text, p
+- id: zol_events
+  name: Зерно Он-Лайн — события
+  type: html
+  kind: event
+  url: https://www.zol.ru/events/
+  category: мероприятие
+  region: РФ
+  enabled: true
+  selectors:
+    item: tr.bizon_api_item_row, .bizon_api_event_item
+    title: .events_profile_tab_title a, a
+    link: .events_profile_tab_title a, a
+    date: .events_profile_tab_members
+    location: .events_profile_tab_adress
+    event_type: .events_profile_tab_cat
+    summary: .events_profile_tab_desc
+- id: tsenovik_expo
+  name: Ценовик — выставки
+  type: html
+  kind: event
+  url: https://www.tsenovik.ru/vystavki/
+  category: мероприятие
+  region: РФ
+  enabled: true
+  selectors:
+    item: table tr, article, .news-item, .list-item
+    title: a, td, h2, h3
+    link: a
+    date: td, time, .date
+    summary: td, p
+- id: agroday_expo
+  name: Agroday — выставки
+  type: html
+  kind: event
+  url: https://agroday.ru/expo/
+  category: мероприятие
+  region: РФ
+  enabled: true
+  selectors:
+    item: a[href*='/expo/']
+    title: ''
+    link: ''
+    date: ''
+    summary: ''
+- id: agroxxi_anonsy
+  name: AgroXXI — анонсы
+  type: html
+  kind: event
+  url: https://www.agroxxi.ru/anonsy
+  category: мероприятие
+  region: РФ
+  enabled: true
+  selectors:
+    item: a[href*='/anonsy/']
+    title: ''
+    link: ''
+    date: time, .date, .news-date, .created
+    summary: p, .announce, .lead
+- id: agroinfo_expo
+  name: Агро-Инфо — выставки
+  type: html
+  kind: event
+  url: https://agro-info.info/vystavki/
+  category: мероприятие
+  region: РФ
+  enabled: true
+  selectors:
+    item: article, .event, .card, .list-item, li
+    title: a, h2, h3
+    link: a
+    date: time, .date
+    summary: p
+- id: milknews_events
+  name: Milknews — события
+  type: html
+  kind: event
+  url: https://event.milknews.ru/
+  category: мероприятие
+  region: РФ
+  enabled: true
+  selectors:
+    item: .event-cards_item, .event-cards_card
+    title: h1.event-cards_heading, h1, h2, h3
+    link: a[href*='/events/']
+    date: .event-cards_date
+    summary: .event-cards_hidden-text, p
+- id: agbz_events
+  name: Агробизнес — мероприятия
+  type: html
+  kind: event
+  url: https://www.agbz.ru/exhibition/
+  category: мероприятие
+  region: РФ
+  enabled: true
+  selectors:
+    item: .item
+    title: .item__title, a
+    link: a.item__thumb, a
+    date: .item__event-date
+    summary: .item__event-info, p
+- id: ferama_calendar
+  name: Фермеры России — выставки 2026
+  type: html
+  kind: event
+  url: https://ferama.ru/selskohozyajstvennye-vystavki-2026-g-v-rossii/
+  category: мероприятие
+  region: РФ
+  enabled: true
+  selectors:
+    item: article li, article p
+    title: a, strong
+    link: a
+    date: ''
+    summary: p
+- id: zol_events_more
+  name: Зерно Он-Лайн — события, следующие страницы
+  type: html
+  kind: event
+  url: https://www.zol.ru/events/?PAGEN_1=2
+  extra_urls:
+  - https://www.zol.ru/events/?PAGEN_1=3
+  - https://www.zol.ru/events/?PAGEN_1=4
+  category: мероприятие
+  region: РФ
+  enabled: true
+  selectors:
+    item: tr.bizon_api_item_row, .bizon_api_event_item
+    title: .events_profile_tab_title a, a
+    link: .events_profile_tab_title a, a
+    date: .events_profile_tab_members
+    location: .events_profile_tab_adress
+    event_type: .events_profile_tab_cat
+    summary: .events_profile_tab_desc
+- id: agroxxi_anonsy_more
+  name: AgroXXI — анонсы, следующие страницы
+  type: html
+  kind: event
+  url: https://www.agroxxi.ru/anonsy/page-2
+  extra_urls:
+  - https://www.agroxxi.ru/anonsy/page-3
+  - https://www.agroxxi.ru/anonsy/page-4
+  - https://www.agroxxi.ru/anonsy/page-5
+  category: мероприятие
+  region: РФ
+  enabled: true
+  selectors:
+    item: a[href*='/anonsy/']
+    title: ''
+    link: ''
+    date: time, .date, .news-date, .created
+    summary: p, .announce, .lead
+- id: apknews_expo
+  name: АПК-Новости — выставки
+  type: html
+  kind: event
+  url: https://apknews.su/expo/
+  category: мероприятие
+  region: РФ
+  enabled: true
+  selectors:
+    item: .expo-item
+    title: .expo-item_title, .title
+    link: a
+    date: .expo-item_date .date, .date
+    location: .expo-item_title
+    summary: .expo-item_title
+- id: agrovesti_events
+  name: АгроВести — афиша
+  type: html
+  kind: event
+  url: https://www.agrovesti.net/events.html
+  extra_urls:
+  - https://www.agrovesti.net/events/all.html
+  - https://www.agrovesti.net/events/all.html?cid=2
+  - https://www.agrovesti.net/events/all.html?cid=4
+  category: мероприятие
+  region: РФ
+  enabled: false
+  selectors:
+    item: h4.evnt-title, .evnt-title
+    title: a
+    link: a
+    date: .evnt-date, time, .date
+    summary: p, .evnt-desc
+- id: dairyunion_events
+  name: Молочный союз — календарь
+  type: html
+  kind: event
+  url: https://dairyunion.ru/calendar
+  extra_urls:
+  - https://dairyunion.ru/events
+  - https://dairyunion.ru/
+  category: мероприятие
+  region: РФ
+  enabled: true
+  selectors:
+    item: a
+    title: ''
+    link: ''
+    date: time, .date
+    summary: p
+- id: yugagro
+  name: ЮгАгро
+  type: html
+  kind: event
+  url: https://www.yugagro.org/
+  category: мероприятие
+  region: РФ
+  enabled: true
+  fallback_links: false
+  selectors:
+    item: h1, article
+    title: h1
+    link: a
+    date: time, .date
+    summary: p
+- id: agroprodmash
+  name: Агропродмаш
+  type: html
+  kind: event
+  url: https://www.agroprodmash-expo.ru/
+  category: мероприятие
+  region: РФ
+  enabled: true
+  fallback_links: false
+  selectors:
+    item: h1
+    title: h1
+    link: a
+    date: time, .date
+    summary: p
+- id: worldfood
+  name: WorldFood Moscow
+  type: html
+  kind: event
+  url: https://world-food.ru/
+  category: мероприятие
+  region: РФ
+  enabled: true
+  fallback_links: false
+  selectors:
+    item: h1, article
+    title: h1, a
+    link: a
+    date: time, .date
+    summary: p
+- id: sibagroweek
+  name: Сибирская аграрная неделя
+  type: html
+  kind: event
+  url: https://sibagroweek.ru/
+  category: мероприятие
+  region: РФ
+  enabled: true
+  fallback_links: false
+  selectors:
+    item: h1, article
+    title: h1, a
+    link: a
+    date: time, .date
+    summary: p
+- id: feedvet_expo
+  name: КормВетГрэйн Экспо
+  type: html
+  kind: event
+  url: https://www.feedvet-expo.ru/
+  category: мероприятие
+  region: РФ
+  enabled: true
+  fallback_links: false
+  selectors:
+    item: h1, h3
+    title: h1, h3
+    link: a
+    date: time, .date
+    summary: p
+- id: minvodyagro
+  name: МинводыАГРО
+  type: html
+  kind: event
+  url: https://minvodyagro.ru/ru-RU/
+  extra_urls:
+  - https://minvodyagro.ru/ru-RU/about/venue.aspx
+  category: мероприятие
+  region: РФ
+  enabled: true
+  fallback_links: false
+  selectors:
+    item: h1, .card
+    title: h1, a
+    link: a
+    date: time, .date
+    summary: p
+- id: agrovolga
+  name: Агроволга
+  type: html
+  kind: event
+  url: https://agrovolga.org/
+  category: мероприятие
+  region: РФ
+  enabled: true
+  fallback_links: false
+  selectors:
+    item: h1, article
+    title: h1, a
+    link: a
+    date: time, .date
+    summary: p
+- id: interagromash
+  name: Интерагромаш
+  type: html
+  kind: event
+  url: https://www.interagromash.net/
+  category: мероприятие
+  region: РФ
+  enabled: true
+  fallback_links: false
+  selectors:
+    item: h1, article
+    title: h1, a
+    link: a
+    date: time, .date
+    summary: p
+- id: agrosalon
+  name: Агросалон
+  type: html
+  kind: event
+  url: https://agrosalon.ru/
+  extra_urls:
+  - https://agrosalon.ru/ru/about/place
+  category: мероприятие
+  region: РФ
+  enabled: true
+  fallback_links: false
+  selectors:
+    item: h1, .event, .card
+    title: h1, a
+    link: a
+    date: time, .date
+    summary: p
+- id: meat_poultry
+  name: Meat & Poultry Industry
+  type: html
+  kind: event
+  url: https://www.meatindustry.ru/
+  category: мероприятие
+  region: РФ
+  enabled: true
+  fallback_links: false
+  selectors:
+    item: h1
+    title: h1
+    link: a
+    date: time, .date
+    summary: p
+- id: agravia
+  name: Агравия
+  type: html
+  kind: event
+  url: https://agravia.org/
+  category: мероприятие
+  region: РФ
+  enabled: true
+  fallback_links: false
+  selectors:
+    item: h1, article
+    title: h1
+    link: a
+    date: time, .date
+    summary: p
+- id: exponet_apk
+  name: Exponet — выставки АПК
+  type: html
+  kind: event
+  url: https://www.exponet.ru/exhibitions/countries/rus/topics/agriculture/dates/future/p1l10000.ru.html
+  topic: apk
+  category: мероприятие
+  region: РФ
+  enabled: true
+  fallback_links: false
+  selectors:
+    item: table tr
+    title: a
+    link: a
+    date: td
+    location: td
+    summary: td
+- id: exponet_industry
+  name: Exponet — промышленные выставки
+  type: html
+  kind: event
+  url: https://www.exponet.ru/exhibitions/countries/rus/topics/promexpo/dates/future/p1l10000.ru.html
+  topic: industry
+  category: мероприятие
+  region: РФ
+  enabled: true
+  fallback_links: false
+  selectors:
+    item: table tr
+    title: a
+    link: a
+    date: td
+    location: td
+    summary: td
+- id: tadviser_calendar
+  name: TAdviser — календарь IT
+  type: html
+  kind: event
+  url: https://www.tadviser.ru/index.php/Календарь_событий
+  topic: it
+  category: мероприятие
+  region: РФ
+  enabled: true
+  fallback_links: false
+  selectors:
+    item: table tr
+    title: a
+    link: a
+    date: td
+    summary: td
+- id: ict2go
+  name: ICT2GO — календарь IT-мероприятий
+  type: html
+  kind: event
+  url: https://ict2go.ru/events/
+  topic: it
+  category: мероприятие
+  region: РФ
+  enabled: true
+  fallback_links: false
+  selectors:
+    item: div.index-events-item
+    title: a.event-title
+    link: a.event-title
+    date: div.date-place
+    location: div.date-place
+    event_type: div.event-type
+    summary: div.event-themes
+- id: globalcio_events
+  name: Global CIO — мероприятия для ИТ-директоров
+  type: html
+  kind: event
+  url: https://globalcio.ru/events/
+  topic: it
+  category: мероприятие
+  region: РФ
+  enabled: true
+  fallback_links: false
+  selectors:
+    item: div.article-list-item
+    title: h2 a
+    link: h2 a
+    date: span.date
+    summary: p
+- id: expoforum_spb
+  name: Экспофорум — календарь Санкт-Петербурга
+  type: html
+  kind: event
+  url: https://www.expoforum.ru/calendar/
+  topic: industry
+  require_topic_guess: true
+  default_location: Санкт-Петербург, Экспофорум
+  category: мероприятие
+  region: РФ
+  enabled: true
+  fallback_links: false
+  selectors:
+    item: div.event-slider-item
+    title: .title-v2
+    link: a.item
+    date: .date
+    summary: li.clipsisv4
+- id: digital_economy_calendar
+  name: Цифровая экономика — календарь 2026
+  type: html
+  kind: event
+  url: https://d-economy.ru/news/kalendar-otraslevyh-meroprijatij-na-2026-god/
+  topic: it
+  category: мероприятие
+  region: РФ
+  enabled: true
+  fallback_links: false
+  selectors:
+    item: li
+    title: ''
+    link: ''
+    date: ''
+    summary: ''
+- id: comnews_conferences
+  name: ComNews — конференции
+  type: html
+  kind: event
+  url: https://www.comnews-conferences.ru/
+  topic: it
+  event_type: конференция
+  category: мероприятие
+  region: РФ
+  enabled: true
+  fallback_links: false
+  selectors:
+    item: a
+    title: ''
+    link: ''
+    date: ''
+    summary: ''
+- id: ict_moscow
+  name: ICT.Moscow — мероприятия
+  type: html
+  kind: event
+  url: https://ict.moscow/events/
+  topic: it
+  category: мероприятие
+  region: РФ
+  enabled: true
+  selectors:
+    item: a[href*='/events/']
+    title: ''
+    link: ''
+    date: time, .date
+    summary: p
+- id: sviaz_expo
+  name: Связь / РНВТ
+  type: html
+  kind: event
+  url: https://www.sviaz-expo.ru/
+  topic: it
+  category: мероприятие
+  region: РФ
+  enabled: true
+  fallback_links: false
+  selectors:
+    item: h1
+    title: h1
+    link: a
+    date: time, .date
+    summary: p
+- id: metobr_expo
+  name: Металлообработка
+  type: html
+  kind: event
+  url: https://www.metobr-expo.ru/
+  topic: industry
+  category: мероприятие
+  region: РФ
+  enabled: true
+  fallback_links: false
+  selectors:
+    item: h1
+    title: h1
+    link: a
+    date: time, .date
+    summary: p
+- id: neftegaz_expo
+  name: Нефтегаз
+  type: html
+  kind: event
+  url: https://www.neftegaz-expo.ru/
+  topic: industry
+  category: мероприятие
+  region: РФ
+  enabled: true
+  fallback_links: false
+  selectors:
+    item: h1
+    title: h1
+    link: a
+    date: time, .date
+    summary: p
+- id: elektro_expo
+  name: Электро
+  type: html
+  kind: event
+  url: https://www.elektro-expo.ru/
+  topic: industry
+  category: мероприятие
+  region: РФ
+  enabled: true
+  fallback_links: false
+  selectors:
+    item: h1
+    title: h1
+    link: a
+    date: time, .date
+    summary: p
+- id: cnews_conferences
+  name: CNews — конференции
+  type: html
+  kind: event
+  url: https://www.cnconf.ru/
+  topic: it
+  event_type: конференция
+  category: мероприятие
+  region: РФ
+  enabled: true
+  fallback_links: false
+  selectors:
+    item: a.events__item, a.top-slider__item, a.archive__item
+    title: .events__title, .top-slider__title, .archive__title
+    link: a
+    date: .events__date, .top-slider__date, .archive__date
+    event_type: .events__status, .top-slider__w, .archive__status
+    summary: .events__title, .top-slider__title
+- id: conferos
+  name: Conferos — IT-конференции
+  type: html
+  kind: event
+  url: https://www.conferos.ru/
+  extra_urls:
+  - https://www.conferos.ru/archive
+  topic: it
+  event_type: конференция
+  category: мероприятие
+  region: РФ
+  enabled: true
+  fallback_links: false
+  selectors:
+    item: li.events-card, li.archive-card, .header__index-content
+    title: .events-card__title, .archive-card__title, .content__title
+    link: .events-card__title a, .archive-card__title a, a[href*='/event/']
+    date: .events-card__date, .archive-card__date, .header-banner__date
+    event_type: .events-card__name, .archive-card__name
+    summary: .content__description
+- id: exponet_all
+  name: Exponet — все выставки РФ
+  type: html
+  kind: event
+  url: https://www.exponet.ru/exhibitions/countries/rus/dates/future/p1l10000.ru.html
+  topic: industry
+  require_topic_guess: true
+  event_type: выставка
+  category: мероприятие
+  region: РФ
+  enabled: true
+  fallback_links: false
+  selectors:
+    item: table tr
+    title: a
+    link: a
+    date: td
+    location: td
+    summary: td
+- id: crocus_expo
+  name: Крокус Экспо — план выставок
+  type: html
+  kind: event
+  url: https://www.crocus-expo.ru/exhibition/
+  extra_urls: []
+  topic: industry
+  require_topic_guess: true
+  event_type: выставка
+  default_location: Москва, МВЦ «Крокус Экспо»
+  category: мероприятие
+  region: РФ
+  enabled: true
+  fallback_links: false
+  selectors:
+    item: div.list-item
+    title: .leftimg-exhibition-about span
+    link: .list-content strong + a[href^='http']
+    date: .leftimg-exhibition-about b
+    summary: .leftimg-exhibition-about em
+    location: .list-content
+- id: globaltech_official
+  name: GLOBAL TECH FORUM
+  type: html
+  kind: event
+  url: https://globaltechforum.ru/
+  topic: it
+  event_type: форум
+  region: РФ
+  enabled: true
+- id: protei_webinars
+  name: 'ПРОТЕЙ Технологии: вебинары'
+  type: html
+  kind: event
+  url: https://webinar.tl.protei.ru/
+  topic: it
+  event_type: вебинар
+  region: РФ
+  enabled: true
+- id: expomap_agriculture
+  name: 'Expomap: сельское хозяйство'
+  type: html
+  kind: event
+  url: https://expomap.ru/expo/theme/selskoe-hozjajstvo/
+  topic: apk
+  region: РФ
+  enabled: true
+  fallback_links: false
+  pagination: true
+  max_pages: 8
+- id: expomap_food
+  name: 'Expomap: пищевая промышленность'
+  type: html
+  kind: event
+  url: https://expomap.ru/expo/theme/produktyi-pischevaya-industriya/
+  topic: apk
+  region: РФ
+  enabled: true
+  fallback_links: false
+  pagination: true
+  max_pages: 8
+- id: workevent
+  name: Workevent
+  type: html
+  kind: event
+  url: https://workevent.ru/
+  topic: mixed
+  region: РФ
+  enabled: true
+  fallback_links: false
+- id: all_events
+  name: All-Events
+  type: html
+  kind: event
+  url: https://all-events.ru/events/
+  topic: mixed
+  region: РФ
+  enabled: true
+  fallback_links: false

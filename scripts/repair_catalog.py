@@ -11,8 +11,8 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-ROOT = Path(__file__).resolve().parent
-sys.path.insert(0, str(ROOT))
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from enrich_summaries import write_catalog  # noqa: E402
 from ingest_round2 import LIFESTYLE_RE, vertical_for  # noqa: E402

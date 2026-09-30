@@ -820,7 +820,7 @@
   }
 </style>
 
-<script src="./events-data.js"></script>
+<script src="./events-data.js?v=20261001-quality"></script>
 </head>
 <body>
   <div class="app">
@@ -864,13 +864,14 @@
           <span>Страна</span>
           <select id="filter-country"><option value="">Все страны</option></select>
         </label>
-        <label class="toggle-intl" for="filter-intl">
+        <label class="toggle-intl" for="filter-intl" title="В России: подтвержденные выступления на иностранном языке или синхронный перевод. Название выставки и участие стран СНГ сами по себе не подходят.">
           <span class="toggle-intl__label">Международные мероприятия</span>
           <span class="tumbler">
-            <input type="checkbox" id="filter-intl" aria-label="Международные мероприятия" />
+            <input type="checkbox" id="filter-intl" aria-label="Международные мероприятия" aria-describedby="intl-help" />
             <span class="tumbler__track" aria-hidden="true"></span>
           </span>
         </label>
+        <span id="intl-help" style="font-size:12px;color:#596579;max-width:300px">В России, с иностранными спикерами или подтвержденным переводом</span>
         <label class="filter-field" for="filter-type">
           <span>Тип мероприятия</span>
           <select id="filter-type" aria-label="Тип мероприятия">
@@ -955,6 +956,7 @@
         <div class="drawer-field__label">Вертикаль</div>
         <div class="drawer-field__value" id="drawer-vertical"></div>
       </div>
+      <div class="drawer-field" id="drawer-language"></div>
       <div class="sutevka" id="drawer-sutevka-block">
         <div class="sutevka__label">О мероприятии</div>
         <div class="sutevka__text" id="drawer-sutevka"></div>
@@ -979,7 +981,8 @@
     events: [],
     vertical: "all",
     region: "cis",
-    enrichAvailable: true,
+    enrichAvailable: /^(localhost|127\.0\.0\.1)$/.test(location.hostname),
+    activeEventId: null,
     tab: "list",
     month: null,
     page: 1,
@@ -1062,7 +1065,7 @@
   function isRealSummary(text, title) {
     if (!text) return false;
     var s = String(text).trim();
-    if (s.length < 120) return false;
+    if (s.length < 45) return false;
     // обрезанный ingest: «...», «...», заканчивается на ,...
     if (/(\.\.\.|…|\,\.\.\.)\s*$/.test(s)) return false;
     var norm = function (x) {
@@ -1221,6 +1224,14 @@
     return "прочее";
   }
 
+  function isTranslationLead(e) {
+    return ["Россия", "РФ", "Russia", "Russian Federation"].indexOf(e.country) !== -1 &&
+      ["confirmed", "potential"].indexOf(e.translationStatus) !== -1 &&
+      Array.isArray(e.translationEvidence) && e.translationEvidence.some(function (proof) {
+        return proof.url && proof.text && String(proof.edition_year) === String(e.date || "").slice(0, 4);
+      });
+  }
+
   function intlOnly() {
     var el = $("filter-intl");
     return !!(el && el.checked);
@@ -1243,7 +1254,7 @@
       if (city && e.city !== city) return false;
       if (country && e.country !== country) return false;
       // "intl" is the audience field, not the country. Moscow stays in «РФ и СНГ».
-      if (onlyIntl && e.audience !== "intl") return false;
+      if (onlyIntl && !isTranslationLead(e)) return false;
       if (type && e.type !== type) return false;
       if (from && e.date < from) return false;
       if (to && e.date > to) return false;
@@ -1292,7 +1303,7 @@
 
     if (!total) {
       empty.hidden = false;
-      empty.textContent = hasActiveFilters()
+      empty.textContent = intlOnly() ? "Пока нет подтвержденных мероприятий в России с иностранными спикерами или переводом. Остальные события доступны при выключенном фильтре." : hasActiveFilters()
         ? "По таким фильтрам список пуст. Расширьте город, тип или даты."
         : "Пока в каталоге пусто. Нажмите «Обновить» или загляните позже.";
       moreWrap.hidden = true;
@@ -1436,7 +1447,7 @@
       if (state.region === "cis" && !isCisCountry(e.country)) return false;
       if (city && e.city !== city) return false;
       if (country && e.country !== country) return false;
-      if (onlyIntl && e.audience !== "intl") return false;
+      if (onlyIntl && !isTranslationLead(e)) return false;
       if (type && e.type !== type) return false;
       if (from && e.date < from) return false;
       if (to && e.date > to) return false;
@@ -1518,6 +1529,8 @@
       return r.json();
     }).then(function (data) {
       clearTimeout(timer);
+      if (state.activeEventId !== String(e.id)) { e._enrichPromise = null; return; }
+      if (data.event) Object.assign(e, data.event);
       var text = (data && (data.summary || data.description)) || "";
       if (data && data.ok === false && !text) {
         e._enrichFailed = true;
@@ -1550,6 +1563,7 @@
       }
     }).catch(function (err) {
       clearTimeout(timer);
+      if (state.activeEventId !== String(e.id)) { e._enrichPromise = null; return; }
       e._enrichFailed = true;
       e._enrichPromise = null;
       block.classList.remove("is-loading");
@@ -1563,6 +1577,15 @@
 
 
   function openDrawer(e) {
+    state.activeEventId = String(e.id);
+    var proofNode = $("drawer-language");
+    if (proofNode) {
+      var label = e.translationStatus === "confirmed" ? "На странице мероприятия указан синхронный перевод" :
+        (e.translationStatus === "potential" ? "Есть иностранные спикеры или доклады на иностранном языке" : "Данных о языках выступлений и переводе пока нет");
+      var proofs = (e.translationEvidence || []).filter(function (x) { return /^https?:\/\//i.test(x.url || ""); });
+      proofNode.innerHTML = '<div class="drawer-field__label">Языки и перевод</div><div class="drawer-field__value">' + escapeHtml(label) + '</div>' +
+        proofs.map(function (x) { return '<p style="font-size:13px">' + escapeHtml(x.text) + ' <a target="_blank" rel="noopener noreferrer" href="' + escapeHtml(x.url) + '">Источник</a></p>'; }).join("");
+    }
     $("drawer-title").textContent = displayTitle(e) || "Без названия";
     $("drawer-badges").innerHTML = renderBadges(e);
     $("drawer-when").textContent = fmtRange(e);
@@ -1624,6 +1647,7 @@
   }
 
   function closeDrawer() {
+    state.activeEventId = null;
     var overlay = $("drawer-overlay");
     overlay.classList.remove("is-open");
     $("event-drawer").classList.remove("is-open");
@@ -1778,7 +1802,7 @@
           var now = new Date();
           stamp = now.toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
         }
-        showToast("Каталог обновлён · Найдено " + n + " · Обновлено: " + stamp, false);
+        showToast("Каталог обновлен · Найдено " + n + " · " + stamp + ((meta && meta.source_errors) ? " · Источников с ошибками: " + meta.source_errors : ""), !!(meta && meta.source_errors));
       }
       function finishErr() {
         showToast("Не удалось обновить. Проверьте сеть и попробуйте ещё раз.", true);
@@ -1786,7 +1810,13 @@
       function done() {
         btn.classList.remove("is-loading");
         btn.disabled = false;
-        btn.textContent = "Обновить";
+      btn.textContent = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? "Обновить" : "Проверить обновления";
+      }
+      if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) {
+        reloadEventsData().then(function (meta) {
+          showToast("Загружен опубликованный каталог. Обновлен: " + ((meta || {}).updated_at || "не указано"), false);
+        }).catch(finishErr).then(done);
+        return;
       }
       fetch("/api/refresh", { method: "POST" })
         .then(function (r) { return r.json().then(function (j) { return { ok: r.ok && j.ok !== false, j: j }; }); })
@@ -1796,12 +1826,7 @@
             finishOk(res.j || window.EVENTS_META || {});
           });
         })
-        .catch(function () {
-          // fallback: soft reload of local events-data.js without server rewrite
-          return reloadEventsData().then(function (meta) {
-            finishOk(meta || window.EVENTS_META || {});
-          }).catch(finishErr);
-        })
+        .catch(finishErr)
         .then(done, function () { finishErr(); done(); });
     });
 
@@ -1845,6 +1870,7 @@
 
   function init() {
     loadEvents();
+    if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) { $("btn-refresh").textContent = "Проверить обновления"; }
     var t = parseISO(todayISO());
     state.month = new Date(t.getFullYear(), t.getMonth(), 1);
     populateFilters();

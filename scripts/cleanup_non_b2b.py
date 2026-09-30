@@ -2,8 +2,8 @@
 import json, re, sys
 from collections import Counter
 from pathlib import Path
-ROOT = Path(__file__).resolve().parent
-sys.path.insert(0, str(ROOT))
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from enrich_summaries import write_catalog
 
 DENY = re.compile(

@@ -15,7 +15,7 @@ from zoneinfo import ZoneInfo
 from enrich_summaries import write_catalog
 from ingest_round2 import LIFESTYLE_RE, vertical_for
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parent.parent
 JSON_PATH = ROOT / "events_upcoming.json"
 REPORT_PATH = ROOT / "samples" / "vertical_reclass_report.txt"
 MSK = ZoneInfo("Europe/Moscow")

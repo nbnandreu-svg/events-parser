@@ -10,7 +10,7 @@ from pathlib import Path
 
 import enrich_summaries as es
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parent.parent
 SAMPLES = ROOT / "samples"
 
 

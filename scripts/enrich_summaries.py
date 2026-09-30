@@ -638,6 +638,8 @@ def find_donor_summary(
     self_start = event.get("starts_at") or ""
     best = ""
     for other in catalog:
+        if other.get("starts_at") != event.get("starts_at") or other.get("ends_at") != event.get("ends_at"):
+            continue
         ot = (other.get("title") or "").strip()
         if ot == self_title and (other.get("starts_at") or "") == self_start:
             # same row
@@ -734,7 +736,11 @@ def fetch_summary_for_event(
             html, _final = fetch_html(u)
         except Exception:
             return None
-        raw = extract_summary_from_html(html)
+        from page_facts import extract_facts
+        facts = extract_facts(html, _final, event)
+        if not facts.get('ok'):
+            return None
+        raw = facts.get('description') or ''
         if not raw or ends_with_ellipsis(raw):
             return None
         polished = polish_summary(raw, event)
@@ -784,6 +790,8 @@ def fetch_summary_for_event(
         key = normalize_title_key(title)
         if key:
             for other in catalog:
+                if other.get("starts_at") != event.get("starts_at") or other.get("ends_at") != event.get("ends_at"):
+                    continue
                 if normalize_title_key(other.get("title") or "") != key:
                     continue
                 ou = (other.get("organizer_url") or "").strip()
@@ -817,118 +825,43 @@ def load_js_events() -> tuple[list[dict], dict]:
 
 
 def write_catalog(events: list[dict]) -> dict:
-    today = datetime.now().strftime("%Y-%m-%d")
-    events = [e for e in events if (e.get("ends_at") or "") >= today]
-    events.sort(key=lambda e: (e.get("starts_at") or "", e.get("title") or ""))
-    JSON_PATH.write_text(json.dumps(events, ensure_ascii=False, indent=2), encoding="utf-8")
-    js_events = []
-    for i, e in enumerate(events, 1):
-        js_events.append({
-            "id": i,
-            "title": e["title"],
-            "vertical": e.get("vertical") or "industry",
-            "type": e.get("type") or "Мероприятие",
-            "city": e.get("city") or "",
-            "country": e.get("country") or "Россия",
-            "date": e.get("starts_at"),
-            "endDate": e.get("ends_at"),
-            "status": e.get("date_status") or "confirmed",
-            "url": e.get("organizer_url") or "",
-            "place": e.get("city") or "—",
-            "summary": clean_description(e.get("description") or ""),
-            "source": e.get("source") or "",
-        })
-    meta = {
-        "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
-        "count": len(js_events),
-    }
-    js = (
-        "window.EVENTS = " + json.dumps(js_events, ensure_ascii=False) + ";\n"
-        + "window.EVENTS_META = " + json.dumps(meta, ensure_ascii=False) + ";\n"
-    )
-    JS_PATH.write_text(js, encoding="utf-8")
-    return meta
+    from catalog_core import write_catalog as save
+    return save(events, root=ROOT)
 
 
 def find_json_index(events: list[dict], js_event: dict) -> Optional[int]:
-    title = (js_event.get("title") or "").strip()
-    date = js_event.get("date") or ""
-    for i, e in enumerate(events):
-        if (e.get("title") or "").strip() == title and (e.get("starts_at") or "") == date:
+    for i, event in enumerate(events):
+        if event.get('id') and str(event['id']) == str(js_event.get('id')):
             return i
-    for i, e in enumerate(events):
-        if (e.get("title") or "").strip() == title:
+        if event.get('title') == js_event.get('title') and event.get('starts_at') == js_event.get('date'):
             return i
     return None
 
 
 def enrich_by_id(event_id: Any) -> dict:
-    try:
-        eid = int(event_id)
-    except (TypeError, ValueError):
-        return {"ok": False, "error": "bad_id"}
-
-    js_events, _meta = load_js_events()
-    target = next((e for e in js_events if e.get("id") == eid), None)
-    if not target:
-        return {"ok": False, "error": "not_found"}
-
-    title = target.get("title")
-    existing = target.get("summary") or ""
-    if is_real_summary(existing, title):
-        return {"ok": True, "summary": existing, "cached": True}
-
-    events = load_json_events()
-    idx = find_json_index(events, target)
-    base = (
-        events[idx]
-        if idx is not None
-        else {
-            "title": title,
-            "organizer_url": target.get("url"),
-            "city": target.get("city"),
-            "country": target.get("country"),
-            "starts_at": target.get("date"),
-            "ends_at": target.get("endDate"),
-            "type": target.get("type"),
-            "vertical": target.get("vertical"),
-            "source": target.get("source"),
-            "description": existing,
-        }
-    )
-
-    # Pass catalog so listing-hub / fetch_failed paths can donor-copy or reuse sibling URLs
-    summary = fetch_summary_for_event(base, catalog=events)
-    if not summary or not is_real_summary(summary, title):
-        donor = find_donor_summary(base, events)
-        if donor and is_real_summary(donor, title):
-            summary = clip_summary(donor)
-        else:
-            return {"ok": False, "summary": "", "error": "fetch_failed"}
-
-    with _write_lock:
+    import asyncio
+    from catalog_core import CATALOG_LOCK, to_browser
+    from refresh_catalog import enrich_rows
+    with CATALOG_LOCK:
         events = load_json_events()
-        idx = find_json_index(events, target)
-        if idx is not None:
-            events[idx]["description"] = summary
-            write_catalog(events)
-        else:
-            js_events, meta = load_js_events()
-            for e in js_events:
-                if e.get("id") == eid:
-                    e["summary"] = summary
-                    break
-            meta = {
-                "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
-                "count": len(js_events),
-            }
-            js = (
-                "window.EVENTS = " + json.dumps(js_events, ensure_ascii=False) + ";\n"
-                + "window.EVENTS_META = " + json.dumps(meta, ensure_ascii=False) + ";\n"
-            )
-            JS_PATH.write_text(js, encoding="utf-8")
-
-    return {"ok": True, "summary": summary, "cached": False}
+        base = next((e.copy() for e in events if str(e.get('id')) == str(event_id)), None)
+    if base is None:
+        return {"ok": False, "error": "not_found"}
+    # Cache validated pages for a day, then check for changed editions/programmes.
+    checked = base.get('description_checked_at', '')
+    if checked and checked[:10] == datetime.now().strftime('%Y-%m-%d') and base.get('description'):
+        return {"ok": True, "summary": base['description'], "cached": True}
+    result = asyncio.run(enrich_rows([base], limit=1))
+    if not result or not result[0].get('ok'):
+        return {"ok": False, "error": (result or [{}])[0].get('reason', 'fetch_failed'), "summary": base.get('description','')}
+    with CATALOG_LOCK:
+        events = load_json_events()
+        idx = next((i for i,e in enumerate(events) if str(e.get('id')) == str(event_id)), None)
+        if idx is None:
+            return {"ok": False, "error": "not_found"}
+        events[idx] = base
+        write_catalog(events)
+    return {"ok": True, "summary": base.get('description',''), "cached": False, "event": to_browser(base)}
 
 
 def cis_priority_key(e: dict) -> tuple:

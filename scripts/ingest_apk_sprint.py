@@ -15,10 +15,10 @@ from typing import Optional
 from urllib.parse import unquote
 import urllib.request
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parent.parent
 SAMPLES = ROOT / "samples"
 SAMPLES.mkdir(exist_ok=True)
-sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 # SKIP_PW no longer defaulted; set SKIP_PW=1 explicitly to disable Playwright
 

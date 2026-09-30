@@ -13,10 +13,11 @@ from pathlib import Path
 from typing import Any, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parent.parent
 SAMPLES = ROOT / "samples"
 SAMPLES.mkdir(exist_ok=True)
-TODAY = date(2026, 9, 19)
+from catalog_core import today
+TODAY = today()
 UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
 MONTHS_RU = {

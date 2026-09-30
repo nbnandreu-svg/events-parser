@@ -10,3 +10,5 @@ samples/*.html
 samples/*.htm
 samples/*_events.html
 .DS_Store
+.cache/
+audit/*.json

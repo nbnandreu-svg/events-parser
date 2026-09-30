@@ -28,7 +28,7 @@ from ingest_apk400 import (
     soft_remap_apk as soft_remap_apk400, APK_HINT, SKIP_TITLE, mon,
 )
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parent.parent
 SAMPLES = ROOT / "samples"
 SAMPLES.mkdir(exist_ok=True)
 

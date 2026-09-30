@@ -22,8 +22,8 @@ from html import unescape
 from pathlib import Path
 from typing import Any, Optional
 
-ROOT = Path(__file__).resolve().parent
-sys.path.insert(0, str(ROOT))
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from ingest_round2 import TODAY, make_event, parse_dot_date, strip_tags  # noqa: E402
 from ingest_round3 import merge  # noqa: E402
 from enrich_summaries import write_catalog, is_real_summary  # noqa: E402
