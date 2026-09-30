@@ -1013,6 +1013,30 @@
     return d.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
   }
 
+  function eventEnd(e) {
+    var end = (e && (e.endDate || e.end_date)) || "";
+    if (!e || !e.date) return end || "";
+    if (!end || end < e.date) return e.date;
+    return end;
+  }
+
+  function fmtRange(e) {
+    if (!e || !e.date) return "—";
+    var end = eventEnd(e);
+    if (!end || end === e.date) return fmtDate(e.date);
+    var a = parseISO(e.date);
+    var b = parseISO(end);
+    if (!a || !b) return fmtDate(e.date);
+    if (a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth()) {
+      return a.getDate() + "–" + b.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
+    }
+    if (a.getFullYear() === b.getFullYear()) {
+      var left = a.toLocaleDateString("ru-RU", { day: "numeric", month: "long" });
+      return left + " — " + b.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
+    }
+    return fmtDate(e.date) + " — " + fmtDate(end);
+  }
+
   function verticalLabel(v) {
     return ({ it: "IT", apk: "АПК", industry: "Промышленность" })[v] || v;
   }
@@ -1213,7 +1237,7 @@
     var onlyConfirmed = $("filter-confirmed-only").checked;
 
     return state.events.filter(function (e) {
-      if (!e.date || e.date < today) return false;
+      if (!e.date || eventEnd(e) < today) return false;
       if (state.vertical !== "all" && e.vertical !== state.vertical) return false;
       if (state.region === "cis" && !isCisCountry(e.country)) return false;
       if (city && e.city !== city) return false;
@@ -1290,7 +1314,7 @@
         '<div class="event-row__meta">' +
           escapeHtml(e.type || "—") + " · " +
           escapeHtml((e.city && e.city.trim()) || "Без города") + " · " +
-          escapeHtml(fmtDate(e.date)) +
+          escapeHtml(fmtRange(e)) +
         "</div>" +
         (sum
           ? (isRealSummary(sum, e.title) ? '<div class="event-row__sutevka">' + escapeHtml(sum) + "</div>" : '')
@@ -1408,7 +1432,7 @@
     var onlyConfirmed = $("filter-confirmed-only") && $("filter-confirmed-only").checked;
 
     var scoped = state.events.filter(function (e) {
-      if (!e.date || e.date < today) return false;
+      if (!e.date || eventEnd(e) < today) return false;
       if (state.region === "cis" && !isCisCountry(e.country)) return false;
       if (city && e.city !== city) return false;
       if (country && e.country !== country) return false;
@@ -1541,7 +1565,7 @@
   function openDrawer(e) {
     $("drawer-title").textContent = displayTitle(e) || "Без названия";
     $("drawer-badges").innerHTML = renderBadges(e);
-    $("drawer-when").textContent = fmtDate(e.date);
+    $("drawer-when").textContent = fmtRange(e);
     $("drawer-where").textContent = whereLine(e);
     $("drawer-type").textContent = e.type || "—";
     $("drawer-vertical").textContent = verticalLabel(e.vertical);
