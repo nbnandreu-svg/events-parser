@@ -80,7 +80,7 @@ def normalize_city(value):
     for city in cities:
         if re.search(r'(?<![а-я])'+re.escape(city)+r'(?![а-я])',value,re.I):return city
     if re.search(r'крокус',value,re.I):return 'Москва'
-    if re.search(r'адрес|\bул\.|улица|переулок|пер\.|информация|предоставляется|уточняется|не указано',value,re.I):return ''
+    if re.search(r'адрес|\bул\.|улица|переулок|пер\.|информация|предоставляется|уточняется|не указано|центр|пространство|кластер|плаза|plaza|кибердом|аллея',value,re.I):return ''
     return value
 
 def same_edition(a, b):
@@ -102,6 +102,7 @@ def same_edition(a, b):
 
 def short_summary(value, title='', limit=460):
     text=clean(value)
+    if re.search(r'transition-(?:property|timing)|(?:font-size|background-color|border-color)\s*:|@media\s*\(|function\s*\(',text,re.I):return ''
     if re.match(r'^Новости\b',text,re.I):return ''
     if re.match(r'^(?:Конференция|Вебинар|Форум|Семинар)\s',text,re.I) and len(text)<180 and not re.search(r'посвящ|обсуд|пройдет|разбер|состо|представ|узна|собер|объедин',text,re.I):return ''
     if re.match(r'^Дата проведения:',text,re.I):return ''
@@ -247,7 +248,8 @@ def prepare_catalog(events):
         if not e['title'] or len(re.sub(r'[^a-zа-я0-9]', '', e['title'].lower()))<4 or e['title'].count('�')>2 or re.fullmatch(r'(?:мероприятие|выставка|конференция)\s*(?:20\d{2})?',e['title'],re.I):
             removed.append({'reason':'invalid_title','event':e});continue
         if (end-start).days>45 and not re.search(r'курс|обучен|серия|сезон|акселератор',e['title'],re.I):
-            removed.append({'reason':'suspicious_date_range','event':e});continue
+            e['date_status']='tentative'
+            e['date_warning']='Длительный период проведения: требуется уточнение'
         kind=clean(e.get('type','')).lower()
         if 'конференц' in kind:e['type']='Конференция'
         elif 'выставк' in kind:e['type']='Выставка'

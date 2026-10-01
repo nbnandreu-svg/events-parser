@@ -421,6 +421,7 @@ sources:
     date: td
     location: td
     summary: td
+  transport: curl
 - id: exponet_industry
   name: Exponet — промышленные выставки
   type: html
@@ -438,6 +439,7 @@ sources:
     date: td
     location: td
     summary: td
+  transport: curl
 - id: tadviser_calendar
   name: TAdviser — календарь IT
   type: html
@@ -675,6 +677,7 @@ sources:
     date: td
     location: td
     summary: td
+  transport: curl
 - id: crocus_expo
   name: Крокус Экспо — план выставок
   type: html
@@ -724,7 +727,7 @@ sources:
   enabled: true
   fallback_links: false
   pagination: true
-  max_pages: 8
+  max_pages: 200
 - id: expomap_food
   name: 'Expomap: пищевая промышленность'
   type: html
@@ -735,7 +738,7 @@ sources:
   enabled: true
   fallback_links: false
   pagination: true
-  max_pages: 8
+  max_pages: 200
 - id: workevent
   name: Workevent
   type: html
@@ -745,6 +748,13 @@ sources:
   region: РФ
   enabled: true
   fallback_links: false
+  extra_urls:
+  - https://workevent.ru/schedule/2026
+  - https://workevent.ru/schedule/2027
+  - https://workevent.ru/schedule/2028
+  discovery_path_pattern: /schedule/20\d{2}(?:/20\d{2}-\d{2})?/?
+  min_year: 2026
+  max_pages: 80
 - id: all_events
   name: All-Events
   type: html
@@ -754,6 +764,10 @@ sources:
   region: РФ
   enabled: true
   fallback_links: false
+  pagination: true
+  pagination_params:
+  - PAGEN_1
+  max_pages: 100
 - id: bioprom_official
   name: 'БИОПРОМ: официальный сайт и программа'
   type: html
@@ -763,3 +777,75 @@ sources:
   region: РФ
   enabled: true
   fallback_links: false
+- type: html
+  kind: event
+  topic: mixed
+  region: РФ
+  enabled: true
+  fallback_links: false
+  id: expomap_russia
+  name: 'Expomap: все выставки в России'
+  url: https://expomap.ru/expo/country/russia/
+  event_type: выставка
+  pagination: true
+  max_pages: 200
+- type: html
+  kind: event
+  topic: mixed
+  region: РФ
+  enabled: true
+  fallback_links: false
+  id: expomap_conferences
+  name: 'Expomap: конференции в России'
+  url: https://expomap.ru/conference/country/russia/
+  event_type: конференция
+  pagination: true
+  max_pages: 200
+- type: html
+  kind: event
+  topic: mixed
+  region: РФ
+  enabled: true
+  fallback_links: false
+  id: expoafisha
+  name: 'Экспо Афиша: календарь деловых событий'
+  url: https://expoafisha.ru/kalendar/
+  pagination: true
+  max_pages: 100
+- type: html
+  kind: event
+  topic: it
+  region: РФ
+  enabled: true
+  fallback_links: false
+  id: calendario
+  name: 'Calendario: IT и digital'
+  url: https://digital-calendar.ru/
+  pagination: true
+  pagination_params:
+  - PAGEN_1
+  max_pages: 100
+- type: html
+  kind: event
+  topic: mixed
+  region: РФ
+  enabled: true
+  fallback_links: false
+  id: kudabiz
+  name: 'KudaBiz: деловые мероприятия'
+  url: https://kudabiz.ru/events
+  pagination: true
+  max_pages: 100
+- type: html
+  kind: event
+  topic: it
+  region: РФ
+  enabled: true
+  fallback_links: false
+  id: confec_it
+  name: 'CONFEC: ИТ-конференции'
+  url: https://www.confec.ru/?tag=IT
+  pagination: true
+  max_pages: 100
+  detail_link_selector: a.event-item[href]
+  max_detail_pages: 1000

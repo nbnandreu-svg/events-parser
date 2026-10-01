@@ -237,6 +237,7 @@ def make_id(url: str, title: str) -> str:
 
 def source_topic(source: dict[str, Any]) -> str:
     topic = str(source.get("topic") or "apk").strip().lower()
+    if topic in {'mixed','other'}:return 'other'
     if topic not in {"apk", "it", "industry"}:
         return "apk"
     return topic
@@ -1835,7 +1836,15 @@ async def parse_source(client: httpx.AsyncClient, source: dict[str, Any]) -> tup
         async def fetch_one(url: str) -> tuple[str, Any]:
             for attempt in range(2):
                 try:
-                    return url, await fetch_text(client, url, verify=verify)
+                    if source.get('transport') == 'curl':
+                        from source_transport import curl_text
+                        content = await curl_text(client, url)
+                    else:
+                        content = await fetch_text(client, url, verify=verify)
+                    title = re.search(r'<title[^>]*>(.*?)</title>',content,re.I|re.S)
+                    if title and re.search(r'^\s*(?:проверка браузера|just a moment|access denied|robot verification)',title.group(1),re.I):
+                        raise RuntimeError('source_browser_verification_required')
+                    return url, content
                 except httpx.HTTPStatusError as exc:
                     if attempt == 0 and exc.response.status_code in {429, 500, 502, 503, 504}:
                         delay = exc.response.headers.get('Retry-After', '1')
@@ -1851,31 +1860,34 @@ async def parse_source(client: httpx.AsyncClient, source: dict[str, Any]) -> tup
                     return url, exc
 
         pages = await asyncio.gather(*[fetch_one(url) for url in urls])
-        if source.get('pagination'):
-            # Follow only same-host pagination links actually present in HTML.
-            visited=set(urls)
-            max_pages=int(source.get('max_pages', 6))
-            cursor=0
-            pending=[]
+        from source_discovery import page_links, detail_links
+        if source.get('pagination') or source.get('discovery_path_pattern'):
+            visited=set(urls);max_pages=int(source.get('max_pages',200));cursor=0
+            result.coverage='complete_visible_pagination'
             while cursor<len(pages):
-                base,html=pages[cursor];cursor+=1
+                pending=[]
+                batch=pages[cursor:];cursor=len(pages)
+                for base,html in batch:
+                    if isinstance(html,Exception):continue
+                    doc=BeautifulSoup(html,'lxml')
+                    for href in page_links(doc,base,source):
+                        if href in visited:continue
+                        if len(visited)>=max_pages:
+                            result.coverage='partial_page_limit';continue
+                        visited.add(href);pending.append(href)
+                if pending:pages.extend(await asyncio.gather(*(fetch_one(u) for u in pending)))
+        if source.get('detail_link_selector'):
+            candidates=[];visited={u for u,_ in pages}
+            for base,html in pages:
                 if isinstance(html,Exception):continue
-                doc=BeautifulSoup(html,'lxml')
-                for a in doc.select('a[href]'):
-                    href=normalize_href(a['href'],base)
-                    if urlparse(href).netloc!=urlparse(source['url']).netloc:continue
-                    if not re.search(r'[?&]page=\d+',href):continue
-                    if urlparse(href).path!=urlparse(source['url']).path:continue
-                    if href in visited:continue
-                    if len(visited)>=max_pages:
-                        result.coverage='partial_page_limit'
-                        continue
-                    visited.add(href);pending.append(href)
-                if cursor==len(pages) and pending:
-                    pages.extend(await asyncio.gather(*(fetch_one(u) for u in pending)))
-                    pending=[]
+                for href in detail_links(BeautifulSoup(html,'lxml'),base,source):
+                    if href not in visited:visited.add(href);candidates.append(href)
+            cap=int(source.get('max_detail_pages',300))
+            if len(candidates)>cap:result.coverage='partial_detail_limit'
+            pages.extend(await asyncio.gather(*(fetch_one(u) for u in candidates[:cap])))
         result.pages_fetched=sum(not isinstance(content,Exception) for _,content in pages)
         result.pages_failed=len(pages)-result.pages_fetched
+        if result.pages_failed:result.coverage='partial_fetch_error'
         for url, content in pages:
             if isinstance(content, Exception):
                 errors.append(f"{url}: {type(content).__name__}: {content}")
@@ -1946,7 +1958,11 @@ async def run_parse(
     async with httpx.AsyncClient(timeout=timeout, headers=headers) as client:
         async def one(source: dict[str, Any]) -> tuple[list[NewsItem], ParseResult]:
             async with sem:
-                return await parse_source(client, source)
+                result = await parse_source(client, source)
+                import os
+                if os.environ.get('PARSER_PROGRESS') == '1':
+                    print(json.dumps({'source':source['id'],'fetched':result[1].fetched,'pages':result[1].pages_fetched,'error':result[1].error,'coverage':result[1].coverage},ensure_ascii=False),flush=True)
+                return result
 
         gathered = await asyncio.gather(*[one(source) for source in sources], return_exceptions=True)
 

@@ -22,8 +22,15 @@ def convert(item):
 def merge_live(existing,incoming):
     rows=[dict(e) for e in existing];added=updated=0
     for item in incoming:
-        old=next((e for e in rows if same_edition(e,item)),None)
+        # A refreshed card can correct a city or extend a single-day listing.
+        direct=next((e for e in rows if e.get('source')==item.get('source')
+            and canonical_url(e.get('organizer_url'))==canonical_url(item.get('organizer_url'))
+            and e.get('title')==item.get('title') and e.get('starts_at')==item.get('starts_at')),None)
+        old=direct or next((e for e in rows if same_edition(e,item)),None)
         if old is None:rows.append(item);added+=1;continue
+        if direct and not (old.get('detail_check') or {}).get('ok'):
+            for key in ('city','country','type','ends_at','date_status'):
+                if item.get(key):old[key]=item[key]
         for key in ('source_urls','sources'):
             field='organizer_url' if key=='source_urls' else 'source'
             old[key]=list(dict.fromkeys(old.get(key,[old.get(field,'')])+item.get(key,[item.get(field,'')])))

@@ -21,7 +21,7 @@ def schema_events(soup):
         elif isinstance(obj,dict):
             typ=obj.get('@type',[]);typ=typ if isinstance(typ,list) else [typ]
             if any(str(x).endswith('Event') for x in typ):yield obj
-            for key in ('@graph','itemListElement','item'):
+            for key in ('@graph','itemListElement','item','mainEntity','subEvent','hasPart'):
                 if key in obj:yield from walk(obj[key])
     for node in soup.select('script[type="application/ld+json"]'):
         try:yield from walk(json.loads(node.string or node.get_text()))

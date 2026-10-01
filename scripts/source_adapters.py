@@ -18,25 +18,72 @@ def parse_special(source,soup):
             row.country='Россия'
             return [row]
         return []
-    if sid.startswith('expomap_'):
+    if sid.startswith('expomap_') or sid=='expoafisha':
         from page_facts import schema_events
         from event_engine import parse_date
         rows=[]
+        formats={}
+        if sid=='expoafisha':
+            for card in soup.select('.ev'):
+                link=card.select_one('h3 a[href]');label=card.select_one('.bdg--format')
+                if link and label:formats[urljoin(source['url'],link['href']).split('#')[0]]=clean_text(label.get_text(' ',strip=True))
         for obj in schema_events(soup):
             start=parse_date(obj.get('startDate'));end=parse_date(obj.get('endDate')) or start
             if not start or not obj.get('name') or not obj.get('url'):continue
             loc=obj.get('location') or {};addr=loc.get('address') or {} if isinstance(loc,dict) else {}
             country=addr.get('addressCountry','') if isinstance(addr,dict) else ''
             if isinstance(country,dict):country=country.get('name','')
+            from event_engine import guess_event_type_from_text
             item=make_item(source=source,title=clean_text(obj['name']),url=urljoin(source['url'],obj['url']),published_at=start,date_end=end,
                 summary=clean_text(obj.get('description','')),location=addr.get('addressLocality','') if isinstance(addr,dict) else '',
-                event_type=source.get('event_type','выставка'),date_evidence=f"{obj['startDate']} {obj.get('endDate','')}")
+                event_type=formats.get(urljoin(source['url'],obj['url']).split('#')[0]) or source.get('event_type') or guess_event_type_from_text(str(obj['name'])+' '+str(obj.get('description',''))),date_evidence=f"{obj['startDate']} {obj.get('endDate','')}")
             item.country='Россия' if country in ('RU','Russia','Россия') else country
             rows.append(item)
         return rows
+    if sid in {'calendario','kudabiz'}:
+        from event_engine import guess_location,guess_event_type_from_text
+        nodes=soup.select('.item-content__info' if sid=='calendario' else 'article.card')
+        rows=[]
+        for node in nodes:
+            title_node=node.select_one('.item-content__title a' if sid=='calendario' else 'h3 a')
+            if not title_node:continue
+            date_node=node.select_one('.item-content__date' if sid=='calendario' else 'time,.card-date,.card-meta')
+            blob=clean_text(date_node.get_text(' ',strip=True)) if date_node else clean_text(node.get_text(' ',strip=True))
+            date_blob=re.sub(r'\b(?:пн|вт|ср|чт|пт|сб|вс),\s*','',blob,flags=re.I)
+            start,end=extract_event_dates(date_blob)
+            if not start:continue
+            title=clean_text(title_node.get_text(' ',strip=True))
+            desc=node.select_one('.item-content__description' if sid=='calendario' else '.card-description')
+            city_node=node.select_one('.item-content__address' if sid=='calendario' else '.card-city')
+            place=clean_text(city_node.get_text(' ',strip=True)).lstrip('📍 ') if city_node else ''
+            city=guess_location(place) or (place if sid=='kudabiz' else '')
+            if not city and sid=='calendario' and ' / ' in blob:city=guess_location(blob.split(' / ',1)[-1])
+            if 'онлайн' in clean_text(node.get_text(' ',strip=True)).lower() and not city:city='Онлайн'
+            labels=' '.join(x.get_text(' ',strip=True) for x in node.select('.item-content__nameplate,.card-cat'))
+            rows.append(make_item(source=source,title=title,url=urljoin(source['url'],title_node['href']),published_at=start,date_end=end,
+                location=city,summary=clean_text(desc.get_text(' ',strip=True)) if desc else '',event_type=guess_event_type_from_text(labels+' '+title+' '+blob),date_evidence=blob))
+        return rows
+    if sid=='confec_it':
+        if soup.select('a.event-item'):return []
+        h=soup.select_one('h1')
+        if not h:return []
+        # CONFEC JSON-LD has contradictory fallback dates. Read the visible date field.
+        date_text=''
+        for label in soup.find_all(string=lambda text:text and text.strip()=='Дата'):
+            parent=label.parent.parent
+            text=clean_text(parent.get_text(' ',strip=True))
+            if len(text)<150:date_text=text;break
+        start,end=extract_event_dates(date_text)
+        if not start:return []
+        title=clean_text(h.get_text(' ',strip=True))
+        from event_engine import guess_location,guess_event_type_from_text
+        body=soup.select_one('main,article,.event-description,.event-content')
+        blob=clean_text((body or soup).get_text(' ',strip=True))
+        return [make_item(source=source,title=title,url=source['url'],published_at=start,date_end=end,location=guess_location(blob[:1500]),
+            event_type=guess_event_type_from_text(title),date_evidence=date_text)]
     if sid=='workevent':
         import json
-        from event_engine import parse_date
+        from event_engine import parse_date,guess_event_type_from_text
         links={}
         for a in soup.select('a[href]'):
             m=re.search(r'/event/.+-(\d+)$',a['href'])
@@ -66,7 +113,7 @@ def parse_special(source,soup):
             rows.append(item)
         return rows
     if sid=='all_events':
-        from event_engine import parse_date
+        from event_engine import parse_date,guess_event_type_from_text
         rows=[]
         for node in soup.select('[itemscope][itemtype$="Event"]'):
             n=node.select_one('[itemprop="name"]');d=node.select_one('[itemprop="startDate"]');a=node.select_one('a[itemprop="url"],a[href*="/events/"]')
@@ -78,7 +125,7 @@ def parse_special(source,soup):
             city=node.select_one('[itemprop="addressLocality"]')
             rows.append(make_item(source=source,title=clean_text(n.get_text(' ',strip=True)),url=urljoin(source['url'],a['href']),
                 published_at=start,date_end=end,location=clean_text(city.get_text(' ',strip=True)) if city else '',
-                event_type='конференция',date_evidence=f'{raw} {endraw}'))
+                event_type=guess_event_type_from_text(clean_text(node.get_text(' ',strip=True))),date_evidence=f'{raw} {endraw}'))
         return rows
     if sid=='tadviser_calendar':
         months={'янв':1,'фев':2,'мар':3,'апр':4,'май':5,'июн':6,'июл':7,'авг':8,'сен':9,'окт':10,'ноя':11,'дек':12}
