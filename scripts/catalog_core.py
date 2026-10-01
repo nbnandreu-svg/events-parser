@@ -134,7 +134,7 @@ def short_summary(value, title='', limit=460):
         return text.rstrip(' ,;:')+'.' if text[-1] not in '.!?' else text
     return ''
 
-def assess_translation(event, evidence=None):
+def assess_translation_evidence(event, evidence=None):
     """No inference from a name, brand, exhibitor nationality or 'international'."""
     base={'audience':'unknown','translation_status':'unknown','translation_evidence':[]}
     from venue_rules import venue_country
@@ -180,6 +180,45 @@ def assess_translation(event, evidence=None):
         return {'audience':'intl','translation_status':'confirmed' if any(x['level']=='confirmed' for x in qualified) else 'potential',
                 'translation_evidence':qualified[:4]}
     return base
+
+def assess_translation(event, evidence=None):
+    """Marketing selection by declared international status; no programme audit required."""
+    from venue_rules import venue_country
+    from language_rules import COUNTRY_RE
+    base={'audience':'unknown','translation_status':'unknown','translation_evidence':[], 'international_reason':''}
+    if venue_country(event) not in ('Россия','РФ','Russia','Russian Federation'):
+        return {**base,'translation_status':'outside_russia'}
+    fields=[]
+    for key in ('title','description','summary','topics','themes','tags'):
+        value=event.get(key) or ''
+        if isinstance(value,list):value=' '.join(str(v) for v in value)
+        if value:fields.append((key,clean(value)))
+    text=' '.join(value for _,value in fields)
+    cis=r'СНГ|Беларус\w*|Казахстан\w*|Кыргызстан\w*|Киргиз\w*|Узбекистан\w*|Таджикистан\w*|Армени\w*|Азербайджан\w*'
+    # Only an explicit CIS-only limitation overrides the marketing marker.
+    cis_only=bool(re.search(r'только.{0,50}(?:'+cis+r')',text,re.I) or
+                  re.search(r'спикер\w*\s+из\s+(?:'+cis+r')',text,re.I))
+    if cis_only and not COUNTRY_RE.search(text):
+        return {**base,'international_reason':'Указано только русскоязычное участие'}
+    markers=[(r'\bмеждународн\w*|\binternational\b','Заявлен международный статус'),
+             (r'\bБРИКС\b|\bBRICS\b|\bШОС\b|межгосударственн\w*|межправительственн\w*','Международная тематика'),
+             (r'(?:иностранн\w*|зарубежн\w*)\s+(?:спикер\w*|докладчик\w*|эксперт\w*|участник\w*|делегаци\w*)','Указано иностранное участие'),
+             (r'синхронн\w*\s+перевод|simultaneous\s+(?:interpretation|translation)','Указан синхронный перевод')]
+    for pattern,reason in markers:
+        for field,value in fields:
+            match=re.search(pattern,value,re.I)
+            if match:
+                excerpt=value[max(0,match.start()-70):min(len(value),match.end()+180)]
+                return {'audience':'intl','translation_status':'declared','international_reason':reason,
+                        'translation_evidence':[{'kind':'declared_marker','field':field,'text':excerpt,
+                            'url':event.get('organizer_url') or event.get('url') or '',
+                            'edition_year':(event.get('starts_at') or event.get('date') or '')[:4]}]}
+    # Existing speaker information is a useful additional marker, never a prerequisite.
+    result=assess_translation_evidence(event,evidence)
+    if result['audience']=='intl':result['international_reason']='Указаны иностранные спикеры или языки выступлений'
+    else:result['international_reason']='Международные признаки в карточке не указаны'
+    return result
+
 
 def stable_id(event):
     identity='|'.join((title_key(event.get('title')),event.get('starts_at',''),event.get('ends_at',''),event.get('country',''),event.get('city','')))
@@ -270,7 +309,7 @@ def to_browser(e):
         city=e.get('city',''),country=e.get('country',''),audience=e.get('audience','unknown'),date=e['starts_at'],endDate=e['ends_at'],
         status=e.get('date_status','confirmed'),url=e.get('organizer_url',''),place=e.get('city',''),summary=e.get('description',''),
         source=e.get('source',''),sources=e.get('sources',[]),translationStatus=e.get('translation_status','unknown'),
-        translationEvidence=e.get('translation_evidence',[]),translationReview=e.get('translation_review',{}),sourceUrls=e.get('source_urls',[]),parentEventUrl=e.get('parent_event_url',''))
+        translationEvidence=e.get('translation_evidence',[]),internationalReason=e.get('international_reason',''),translationReview=e.get('translation_review',{}),sourceUrls=e.get('source_urls',[]),parentEventUrl=e.get('parent_event_url',''))
 
 def atomic_text(path,text):
     path=Path(path);path.parent.mkdir(parents=True,exist_ok=True)

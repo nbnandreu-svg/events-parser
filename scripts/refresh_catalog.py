@@ -109,7 +109,7 @@ async def enrich_rows(events,limit=100,ids=None):
         await asyncio.gather(*(one(e) for e in candidates))
     return log
 
-async def refresh_async(source_ids=None,enrich_limit=120,offline=False,review_international=True):
+async def refresh_async(source_ids=None,enrich_limit=120,offline=False,review_international=False):
     path=ROOT/'events_upcoming.json';existing=json.loads(path.read_text(encoding='utf-8')) if path.exists() else []
     existing=[e for e in existing if (e.get('ends_at') or '')>=today().isoformat()];sources=[];incoming=[]
     if not offline:

@@ -9,14 +9,14 @@ const a=html.indexOf('  function isTranslationLead(');
 const b=html.indexOf('  function intlOnly(',a);
 const scope=vm.createContext({});vm.runInContext(html.slice(a,b),scope);
 const proof={url:'https://example.org/2026',text:'Спикер из Китая',edition_year:'2026'};
-const base={country:'Россия',date:'2026-10-06',translationStatus:'potential',translationEvidence:[proof]};
+const base={country:'Россия',date:'2026-10-06',audience:'intl',translationStatus:'declared',translationEvidence:[]};
 const cases=[
  [base,true],
  [{...base,country:'Беларусь'},false],
  [{...base,country:'Германия'},false],
- [{...base,translationStatus:'unknown',audience:'intl'},false],
- [{...base,translationEvidence:[]},false],
- [{...base,date:'2027-10-06'},false],
+ [{...base,translationStatus:'unknown',audience:'intl'},true],
+ [{...base,translationEvidence:[]},true],
+ [{...base,audience:'unknown'},false],
 ];
 for (const [e,want] of cases) {scope.e=e;assert.equal(vm.runInContext('isTranslationLead(e)',scope),want);}
 assert.equal((html.match(/onlyIntl && !isTranslationLead\(e\)/g)||[]).length,2,'list and counters use the same filter');

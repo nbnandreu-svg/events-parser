@@ -88,7 +88,7 @@ class FetchTests(unittest.IsolatedAsyncioTestCase):
         with tempfile.TemporaryDirectory() as td:
             root=Path(td);(root/'events_upcoming.json').write_text('[]')
             with patch.object(refresh_catalog,'ROOT',root),patch.object(refresh_catalog,'run_parse',AsyncMock(return_value=([item],[ParseResult(source_id='test',source_name='Test',fetched=1,accepted=1)]))),patch('international_scan.scan',side_effect=review),patch.object(refresh_catalog,'write_catalog',side_effect=lambda events,**kw:save(events,root=root,**kw)):
-                result=await refresh_catalog.refresh_async(enrich_limit=0)
+                result=await refresh_catalog.refresh_async(enrich_limit=0,review_international=True)
             self.assertEqual(result['international_review']['targeted'],1)
 
 if __name__=='__main__':unittest.main()

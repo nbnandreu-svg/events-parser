@@ -864,14 +864,14 @@
           <span>Страна</span>
           <select id="filter-country"><option value="">Все страны</option></select>
         </label>
-        <label class="toggle-intl" for="filter-intl" title="В России: подтвержденные выступления на иностранном языке или синхронный перевод. Название выставки и участие стран СНГ сами по себе не подходят.">
+        <label class="toggle-intl" for="filter-intl" title="Мероприятия в России с международным статусом по названию, темам, описанию или составу участников.">
           <span class="toggle-intl__label">Международные мероприятия</span>
           <span class="tumbler">
             <input type="checkbox" id="filter-intl" aria-label="Международные мероприятия" aria-describedby="intl-help" />
             <span class="tumbler__track" aria-hidden="true"></span>
           </span>
         </label>
-        <span id="intl-help" style="font-size:12px;color:#596579;max-width:300px">В России, с иностранными спикерами или подтвержденным переводом</span>
+        <span id="intl-help" style="font-size:12px;color:#596579;max-width:300px">В России: международный статус, темы или иностранные участники</span>
         <label class="filter-field" for="filter-type">
           <span>Тип мероприятия</span>
           <select id="filter-type" aria-label="Тип мероприятия">
@@ -1225,11 +1225,7 @@
   }
 
   function isTranslationLead(e) {
-    return ["Россия", "РФ", "Russia", "Russian Federation"].indexOf(e.country) !== -1 &&
-      ["confirmed", "potential"].indexOf(e.translationStatus) !== -1 &&
-      Array.isArray(e.translationEvidence) && e.translationEvidence.some(function (proof) {
-        return proof.url && proof.text && String(proof.edition_year) === String(e.date || "").slice(0, 4);
-      });
+    return ["Россия", "РФ", "Russia", "Russian Federation"].indexOf(e.country) !== -1 && e.audience === "intl";
   }
 
   function onlyInternationalReviewHint() { return intlOnly(); }
@@ -1297,15 +1293,7 @@
       $("meta-hint").textContent = "Все найденные на экране";
     }
 
-    if (onlyInternationalReviewHint()) {
-      var cov = (window.EVENTS_META || {}).international_coverage;
-      if (cov) {
-        var states = cov.states || {};
-        var checked = (states.qualified || 0) + (states.reviewed_no_signal || 0);
-        $("meta-hint").textContent = "Страницы программ обработаны: " + checked + " из " + cov.total +
-          ". Недоступны: " + (states.unavailable || 0) + ". Программа не найдена: " + (states.no_programme_found || 0) + ".";
-      }
-    }
+    if (intlOnly()) $("meta-hint").textContent = "Отбор по названию, темам, описанию и иностранному участию.";
     var list = $("event-list");
     var empty = $("list-empty");
     var moreWrap = $("list-more-wrap");
@@ -1314,7 +1302,7 @@
 
     if (!total) {
       empty.hidden = false;
-      empty.textContent = intlOnly() ? "Пока нет подтвержденных мероприятий в России с иностранными спикерами или переводом. Остальные события доступны при выключенном фильтре." : hasActiveFilters()
+      empty.textContent = intlOnly() ? "По выбранным условиям международные мероприятия не найдены. Попробуйте расширить даты или город." : hasActiveFilters()
         ? "По таким фильтрам список пуст. Расширьте город, тип или даты."
         : "Пока в каталоге пусто. Нажмите «Обновить» или загляните позже.";
       moreWrap.hidden = true;
@@ -1593,7 +1581,8 @@
     if (proofNode) {
       var label = e.translationStatus === "confirmed" ? "На странице мероприятия указан синхронный перевод" :
         (e.translationStatus === "potential" ? "Есть иностранные спикеры или доклады на иностранном языке" : "Данных о языках выступлений и переводе пока нет");
-      if (e.translationStatus !== "confirmed" && e.translationStatus !== "potential") {
+      if (e.translationStatus === "declared") label = e.internationalReason || "Заявлен международный статус";
+      if (e.translationStatus !== "declared" && e.translationStatus !== "confirmed" && e.translationStatus !== "potential") {
         label = ({pending:"Программа еще не проверена", unavailable:"Страница недоступна при последней проверке",
           no_programme_found:"На проверенной странице не найдена программа", partially_unavailable:"Часть страниц не загрузилась. Данных для оценки недостаточно", programme_unreadable:"Программа найдена, но ее текст не удалось прочитать", outside_scope:"Мероприятие за пределами России либо его проведение в России не подтверждено", unresolved_url:"Есть ссылка на каталог, программа не найдена",
           identity_or_edition_mismatch:"Не удалось сопоставить программу с этим выпуском", reviewed_no_signal:"В прочитанной программе недостаточно сведений о необходимости перевода"})[(e.translationReview || {}).state || "pending"] || label;
@@ -1602,7 +1591,7 @@
       if (e.translationStatus === "potential" && proofs.some(function (x) { return x.participation_status === "invited"; })) {
         label = "Приглашен иностранный спикер. Потребность в переводе стоит уточнить.";
       }
-      proofNode.innerHTML = '<div class="drawer-field__label">Языки и перевод</div><div class="drawer-field__value">' + escapeHtml(label) + '</div>' +
+      proofNode.innerHTML = '<div class="drawer-field__label">Международный статус</div><div class="drawer-field__value">' + escapeHtml(label) + '</div>' +
         proofs.map(function (x) { return '<p style="font-size:13px">' + escapeHtml(x.text) + ' <a target="_blank" rel="noopener noreferrer" href="' + escapeHtml(x.url) + '">Источник</a></p>'; }).join("");
     }
     $("drawer-title").textContent = displayTitle(e) || "Без названия";
