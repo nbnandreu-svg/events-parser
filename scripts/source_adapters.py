@@ -3,6 +3,51 @@ import re
 from datetime import datetime
 from urllib.parse import urljoin
 
+def expoafisha_cards(source, soup):
+    from catalog_core import today
+    from event_engine import CITY_HINTS, MONTHS_RU, make_item
+    from venue_rules import venue_country
+
+    months = {name[:3]: index for index, name in enumerate(MONTHS_RU, 1)}
+    rows = []
+    for card in soup.select('.ev'):
+        link = card.select_one('h3 a[href]')
+        dates = card.select_one('.ev-date')
+        if not link or not dates:
+            continue
+        raw = dates.get_text(' ', strip=True).lower()
+        match = re.fullmatch(r'(\d{1,2})(?:\s+([а-я]+))?(?:\s*[–—-]\s*(\d{1,2})\s+([а-я]+))?(?:\s+(20\d{2}))?', raw)
+        if not match:
+            continue
+        first, month, last, end_month, year = match.groups()
+        start_m = months.get((month or end_month or '')[:3])
+        end_m = months.get((end_month or month or '')[:3])
+        if not start_m or not end_m:
+            continue
+        group = card.find_parent('section', class_='kl-grp')
+        heading = group.select_one('h2') if group else None
+        group_year = re.search(r'\b20\d{2}\b', heading.get_text()) if heading else None
+        start_y = int(group_year.group()) if group_year else today().year
+        end_y = int(year) if year else start_y + int(end_m < start_m)
+        if year and not group_year:
+            start_y = end_y - int(end_m < start_m)
+        try:
+            start = datetime(start_y, start_m, int(first))
+            end = datetime(end_y, end_m, int(last or first))
+        except ValueError:
+            continue
+        if end < start:
+            continue
+        venue = card.select_one('.v')
+        city = venue.get_text(' ', strip=True).split('·')[0].strip() if venue else ''
+        label = card.select_one('.bdg--format')
+        row = make_item(source=source, title=link.get_text(' ', strip=True), url=urljoin(source['url'], link['href']),
+                        published_at=start, date_end=end, location=city, event_type=label.get_text(strip=True) if label else '',
+                        date_evidence=f'{raw} ({start_y})')
+        row.country = venue_country({'city': city}) or ('Россия' if city in CITY_HINTS else '')
+        rows.append(row)
+    return rows
+
 def parse_special(source,soup):
     from event_engine import clean_text, make_item, extract_event_dates
     sid=source['id']
@@ -39,6 +84,8 @@ def parse_special(source,soup):
                 event_type=formats.get(urljoin(source['url'],obj['url']).split('#')[0]) or source.get('event_type') or guess_event_type_from_text(str(obj['name'])+' '+str(obj.get('description',''))),date_evidence=f"{obj['startDate']} {obj.get('endDate','')}")
             item.country='Россия' if country in ('RU','Russia','Россия') else country
             rows.append(item)
+        if sid=='expoafisha' and not rows:
+            return expoafisha_cards(source, soup)
         return rows
     if sid in {'calendario','kudabiz'}:
         from event_engine import guess_location,guess_event_type_from_text
@@ -64,6 +111,34 @@ def parse_special(source,soup):
                 location=city,summary=clean_text(desc.get_text(' ',strip=True)) if desc else '',event_type=guess_event_type_from_text(labels+' '+title+' '+blob),date_evidence=blob))
         return rows
     if sid=='confec_it':
+        cards = soup.select('article.row')
+        if cards:
+            from event_engine import MONTHS_RU, guess_event_type_from_text
+            months = {name[:3]: name for name in MONTHS_RU}
+            rows = []
+            for card in cards:
+                if card.select_one('.badge-past'):
+                    continue
+                link = card.select_one('h3 a[href]')
+                fields = [card.select_one('.date-tile .' + part) for part in ('d', 'm', 'y')]
+                if not link or not all(fields):
+                    continue
+                day, month, year = [field.get_text(strip=True) for field in fields]
+                if not re.fullmatch(r'\d{1,2}(?:[–-]\d{1,2})?', day) or not re.fullmatch(r'20\d{2}',year) or month[:3] not in months:
+                    continue
+                date_text = f'{day} {months[month[:3]]} {year}'
+                start, end = extract_event_dates(date_text)
+                if not start:
+                    continue
+                title = link.get_text(' ',strip=True)
+                city_node = card.select_one('.card-meta > span:not([class]):has(svg circle)')
+                desc = card.select_one('.row-body p')
+                summary = desc.get_text(' ',strip=True) if desc else ''
+                rows.append(make_item(source=source,title=title,url=urljoin(source['url'],link['href']),
+                                      published_at=start,date_end=end,date_evidence=date_text,
+                                      location=city_node.get_text(' ',strip=True) if city_node else '',
+                                      event_type=guess_event_type_from_text(title+' '+summary),summary=summary))
+            return rows
         if soup.select('a.event-item'):return []
         h=soup.select_one('h1')
         if not h:return []
@@ -85,7 +160,11 @@ def parse_special(source,soup):
         import json
         from event_engine import parse_date,guess_event_type_from_text
         links={}
+        visible_paths={}
         for a in soup.select('a[href]'):
+            path=a['href'].rstrip('/')
+            if re.fullmatch(r'/event/[^/?#]+',path):
+                visible_paths[path]=urljoin(source['url'],a['href'])
             m=re.search(r'/event/.+-(\d+)$',a['href'])
             if m:links[int(m.group(1))]=urljoin(source['url'],a['href'])
         objects={}
@@ -104,9 +183,11 @@ def parse_special(source,soup):
         rows=[]
         for o in objects.values():
             start=parse_date(o['start_date']);end=parse_date(o.get('end_date')) or start
-            if not start or o['id'] not in links:continue
+            path=o.get('path') or '/event/'+str(o.get('slug') or '')
+            url=visible_paths.get(path.rstrip('/')) or links.get(o['id'])
+            if not start or not url or o.get('is_cancelled'):continue
             city=(o.get('city') or {}).get('title','')
-            item=make_item(source=source,title=o['title'],url=links[o['id']],published_at=start,date_end=end,
+            item=make_item(source=source,title=o['title'],url=url,published_at=start,date_end=end,
                 location=city,event_type=o.get('format_label','мероприятие'),date_evidence=f"{o['start_date']} {o.get('end_date','')}")
             russian={'Москва','Санкт-Петербург','Казань','Новосибирск','Екатеринбург','Сочи','Краснодар','Нижний Новгород','Томск','Самара'}
             item.country='Россия' if city in russian else ''

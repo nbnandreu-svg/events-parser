@@ -21,6 +21,43 @@ def source(sid,**kw):
 
 
 class CoverageTests(unittest.TestCase):
+    def test_expoafisha_visible_dates_use_section_year(self):
+        html = '''<section class="kl-grp"><h2>Декабрь 2027</h2><div class="ev">
+                  <h3><a href="/events/test">Тестовая выставка</a></h3>
+                  <span class="ev-date">25 дек – 3 янв 2028</span>
+                  <span class="v">Москва · Манеж</span></div></section>'''
+        row, = parse_special(source('expoafisha'), BeautifulSoup(html, 'lxml'))
+        self.assertEqual(row.published_at.date().isoformat(), '2027-12-25')
+        self.assertEqual(row.date_end.date().isoformat(), '2028-01-03')
+        self.assertEqual(row.location, 'Москва')
+
+    def test_confec_uses_card_dates_and_skips_archive(self):
+        card = '''<article class="row"><div class="date-tile"><span class="d">19–20</span>
+                  <span class="m">ноя</span><span class="y">2026</span></div>
+                  <h3><a href="/conference">Конференция 2026</a></h3></article>'''
+        html = card + card.replace('<h3>', '<span class="badge-past">Прошло</span><h3>')
+        row, = parse_special(source('confec_it'), BeautifulSoup(html, 'lxml'))
+        self.assertEqual(row.published_at.date().isoformat(), '2026-11-19')
+        self.assertEqual(row.date_end.date().isoformat(), '2026-11-20')
+
+    def test_workevent_matches_visible_slug_without_numeric_suffix(self):
+        visible = dict(id=131, title='Конференция 2027', slug='conf', start_date='2027-02-12')
+        cancelled = dict(visible, id=132, slug='cancelled', is_cancelled=True)
+        hidden = dict(visible, id=133, slug='hidden')
+        payload = json.dumps([visible, cancelled, hidden], ensure_ascii=False, separators=(',', ':'))
+        script = 'self.__next_f.push(' + json.dumps([1,payload]) + ')'
+        html = '<a href="/event/conf">Conf</a><a href="/event/cancelled">Cancelled</a><script>' + script + '</script>'
+        rows = parse_special(source('workevent'), BeautifulSoup(html,'lxml'))
+        self.assertEqual([row.url for row in rows], ['https://example.org/event/conf'])
+
+    def test_captcha_is_reported_as_unavailable(self):
+        from unittest.mock import AsyncMock
+        with patch('event_engine.fetch_text', AsyncMock(return_value='<title>Captcha</title>')):
+            rows, result = asyncio.run(parse_source(None, source('expoforum_spb')))
+        self.assertFalse(rows)
+        self.assertEqual(result.pages_failed, 1)
+        self.assertIn('source_browser_verification_required', result.error)
+
     def test_general_calendar_does_not_default_to_agriculture(self):
         s=source('expomap_russia');s['topic']='mixed'
         self.assertEqual(resolve_topic(s,'ShoesStar 2026'),'other')

@@ -1842,7 +1842,10 @@ async def parse_source(client: httpx.AsyncClient, source: dict[str, Any]) -> tup
                     else:
                         content = await fetch_text(client, url, verify=verify)
                     title = re.search(r'<title[^>]*>(.*?)</title>',content,re.I|re.S)
-                    if title and re.search(r'^\s*(?:проверка браузера|just a moment|access denied|robot verification)',title.group(1),re.I):
+                    if not title and ('<body>setting cookie...' in content[:300].lower() or
+                            ('gorizontal-vertikal' in content[:400] and 'noindex, noarchive' in content[:200])):
+                        raise RuntimeError('source_browser_verification_required')
+                    if title and re.search(r'^\s*(?:captcha\b|проверка браузера|just a moment|access denied|robot verification)',title.group(1),re.I):
                         raise RuntimeError('source_browser_verification_required')
                     return url, content
                 except httpx.HTTPStatusError as exc:

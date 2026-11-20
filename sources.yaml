@@ -844,8 +844,6 @@ sources:
   fallback_links: false
   id: confec_it
   name: 'CONFEC: ИТ-конференции'
-  url: https://www.confec.ru/?tag=IT
+  url: https://confec.ru/tag/it
   pagination: true
   max_pages: 100
-  detail_link_selector: a.event-item[href]
-  max_detail_pages: 1000
