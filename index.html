@@ -184,6 +184,7 @@
     letter-spacing: 0.01em;
   }
   .filter-field select,
+  .filter-field input[type="search"],
   .filter-field input[type="date"] {
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
@@ -195,6 +196,7 @@
     transition: border-color .12s, box-shadow .12s;
   }
   .filter-field select:hover,
+  .filter-field input[type="search"]:hover,
   .filter-field input[type="date"]:hover {
     border-color: #CBD5E1;
   }
@@ -299,6 +301,7 @@
   .chip-vertical[data-vertical="it"].is-active { background: var(--it); }
   .chip-vertical[data-vertical="apk"].is-active { background: var(--apk); }
   .chip-vertical[data-vertical="industry"].is-active { background: var(--industry); }
+  .chip-vertical[data-vertical="other"].is-active { background: #475569; }
   .chip-count {
     display: inline-block;
     margin-left: 4px;
@@ -833,6 +836,7 @@
             IT · <strong id="stat-it">0</strong>
             · АПК · <strong id="stat-apk">0</strong>
             · Промышленность · <strong id="stat-industry">0</strong>
+            · Прочие · <strong id="stat-other">0</strong>
             · Σ <strong id="stat-sum">0</strong>
             · в каталоге <strong id="header-count">0</strong>
           </p>
@@ -841,12 +845,18 @@
     </header>
 
     <section id="filter-bar" aria-label="Фильтры">
+      <label class="filter-field" for="filter-search">
+        <input type="search" id="filter-search" aria-label="Поиск по названию мероприятия"
+               placeholder="Поиск по названию мероприятия" autocomplete="off" />
+      </label>
+
       <div class="filter-row" id="chips-vertical" role="group" aria-label="Вертикаль">
         <span class="filter-label">Вертикаль</span>
         <button type="button" class="chip-vertical is-active" data-vertical="all" id="chip-all">Все <span class="chip-count" id="chip-count-all">0</span></button>
         <button type="button" class="chip-vertical" data-vertical="it" id="chip-it">IT <span class="chip-count" id="chip-count-it">0</span></button>
         <button type="button" class="chip-vertical" data-vertical="apk" id="chip-apk">АПК <span class="chip-count" id="chip-count-apk">0</span></button>
         <button type="button" class="chip-vertical" data-vertical="industry" id="chip-industry">Промышленность <span class="chip-count" id="chip-count-industry">0</span></button>
+        <button type="button" class="chip-vertical" data-vertical="other" id="chip-other">Прочие <span class="chip-count" id="chip-count-other">0</span></button>
       </div>
 
       <div class="filter-row" id="chips-region" role="group" aria-label="Регион">
@@ -1040,7 +1050,7 @@
   }
 
   function verticalLabel(v) {
-    return ({ it: "IT", apk: "АПК", industry: "Промышленность" })[v] || v;
+    return ({ it: "IT", apk: "АПК", industry: "Промышленность", other: "Прочие" })[eventVertical({ vertical: v })];
   }
 
   function statusLabel(s) {
@@ -1182,6 +1192,7 @@
 
   function hasActiveFilters() {
     return (
+      searchTerms().length > 0 ||
       state.vertical !== "all" ||
       state.region !== "cis" ||
       $("filter-city").value ||
@@ -1234,8 +1245,29 @@
     return !!(el && el.checked);
   }
 
+  function normalizeSearch(text) {
+    return String(text || "").normalize("NFKC").toLowerCase().replace(/ё/g, "е")
+      .replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+  }
+
+  function searchTerms() {
+    var query = normalizeSearch($("filter-search").value);
+    return query ? query.split(" ") : [];
+  }
+
+  function matchesSearch(event, terms) {
+    if (!terms.length) return true;
+    var title = normalizeSearch(event.title);
+    return terms.every(function (term) { return title.includes(term); });
+  }
+
+  function eventVertical(event) {
+    return ["it", "apk", "industry"].includes(event.vertical) ? event.vertical : "other";
+  }
+
   function filtered() {
     var today = todayISO();
+    var terms = searchTerms();
     var city = $("filter-city").value;
     var country = $("filter-country").value;
     var onlyIntl = intlOnly();
@@ -1246,7 +1278,7 @@
 
     return state.events.filter(function (e) {
       if (!e.date || eventEnd(e) < today) return false;
-      if (state.vertical !== "all" && e.vertical !== state.vertical) return false;
+      if (state.vertical !== "all" && eventVertical(e) !== state.vertical) return false;
       if (state.region === "cis" && !isCisCountry(e.country)) return false;
       if (city && e.city !== city) return false;
       if (country && e.country !== country) return false;
@@ -1256,7 +1288,7 @@
       if (from && e.date < from) return false;
       if (to && e.date > to) return false;
       if (onlyConfirmed && e.status !== "confirmed") return false;
-      return true;
+      return matchesSearch(e, terms);
     }).sort(function (a, b) {
       var c = a.date.localeCompare(b.date);
       if (c !== 0) return c;
@@ -1301,7 +1333,7 @@
 
     if (!total) {
       empty.hidden = false;
-      empty.textContent = intlOnly() ? "По выбранным условиям международные мероприятия не найдены. Попробуйте расширить даты или город." : hasActiveFilters()
+      empty.textContent = searchTerms().length ? "Мероприятия не найдены. Проверьте название или измените фильтры." : intlOnly() ? "По выбранным условиям международные мероприятия не найдены. Попробуйте расширить даты или город." : hasActiveFilters()
         ? "По таким фильтрам список пуст. Расширьте город, тип или даты."
         : "Пока в каталоге пусто. Нажмите «Обновить» или загляните позже.";
       moreWrap.hidden = true;
@@ -1432,6 +1464,7 @@
   function updateHeaderCount() {
     // Счётчики вертикалей — в рамках текущего региона (и дат/города/типа, но без чипа вертикали)
     var today = todayISO();
+    var terms = searchTerms();
     var city = $("filter-city").value;
     var country = $("filter-country").value;
     var onlyIntl = intlOnly();
@@ -1450,29 +1483,24 @@
       if (from && e.date < from) return false;
       if (to && e.date > to) return false;
       if (onlyConfirmed && e.status !== "confirmed") return false;
-      return true;
+      return matchesSearch(e, terms);
     });
 
-    var it = 0, apk = 0, industry = 0, other = 0;
+    var counts = { it: 0, apk: 0, industry: 0, other: 0 };
     scoped.forEach(function (e) {
-      if (e.vertical === "it") it++;
-      else if (e.vertical === "apk") apk++;
-      else if (e.vertical === "industry") industry++;
-      else other++;
+      counts[eventVertical(e)]++;
     });
-    var sum = it + apk + industry + other;
+    var sum = scoped.length;
     var all = state.events.length;
 
     function setTxt(id, n) { var el = $(id); if (el) el.textContent = String(n); }
-    setTxt("stat-it", it);
-    setTxt("stat-apk", apk);
-    setTxt("stat-industry", industry);
+    Object.keys(counts).forEach(function (vertical) {
+      setTxt("stat-" + vertical, counts[vertical]);
+      setTxt("chip-count-" + vertical, counts[vertical]);
+    });
     setTxt("stat-sum", sum);
     setTxt("header-count", all);
     setTxt("chip-count-all", sum);
-    setTxt("chip-count-it", it);
-    setTxt("chip-count-apk", apk);
-    setTxt("chip-count-industry", industry);
   }
 
   function render() {
@@ -1678,6 +1706,7 @@
     state.vertical = "all";
     state.region = "cis";
     state.page = 1;
+    $("filter-search").value = "";
     document.querySelectorAll("#chips-vertical .chip-vertical").forEach(function (b) {
       b.classList.toggle("is-active", b.dataset.vertical === "all");
     });
@@ -1783,6 +1812,11 @@
         state.page = 1;
         render();
       });
+    });
+
+    $("filter-search").addEventListener("input", function () {
+      state.page = 1;
+      render();
     });
 
     $("btn-reset").addEventListener("click", resetFilters);
