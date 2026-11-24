@@ -1,12 +1,13 @@
 """List new, still relevant editions between two published catalog revisions."""
 import argparse
+import hashlib
 from collections import defaultdict
 from datetime import date
 import json
 import re
 import subprocess
 
-from catalog_core import ROOT, canonical_url, is_hub, same_edition, title_key, today
+from catalog_core import ROOT, atomic_text, canonical_url, is_hub, same_edition, title_key, today
 
 
 TOPICS = ('it', 'apk', 'industry')
@@ -70,9 +71,20 @@ def additions(previous, current, topics=TOPICS, as_of=None):
                for link in edition_links(row) for old in by_link[link]):
             continue
         result.append({key: row.get(key, '') for key in (
-            'id', 'vertical', 'title', 'starts_at', 'ends_at', 'city', 'date_status', 'organizer_url')})
+            'id', 'vertical', 'title', 'starts_at', 'ends_at', 'city', 'country', 'priority_evidence', 'date_status', 'organizer_url')})
         remember(row)
     return result
+
+
+def write_release(rows, folder):
+    ids = sorted({r['id'] for r in rows})
+    if not ids:
+        return None
+    payload = json.dumps({'ids': ids}, separators=(',', ':'))
+    key = hashlib.sha256(payload.encode()).hexdigest()[:12]
+    atomic_text(folder / (key + '.json'), payload)
+    atomic_text(folder / 'latest.json', payload)
+    return key
 
 
 if __name__ == '__main__':
@@ -80,6 +92,13 @@ if __name__ == '__main__':
     parser.add_argument('--since', required=True)
     parser.add_argument('--until', default='HEAD')
     parser.add_argument('--topics', choices=TOPICS, nargs='+', default=TOPICS)
+    parser.add_argument('--write-release', action='store_true',
+                        help='Publish the selection against the working catalog before committing.')
     args = parser.parse_args()
-    print(json.dumps(additions(snapshot(args.since), snapshot(args.until), args.topics),
-                     indent=2, ensure_ascii=False))
+    current = json.loads((ROOT/'events_upcoming.json').read_text(encoding='utf-8')) if args.write_release else snapshot(args.until)
+    rows = additions(snapshot(args.since), current, args.topics)
+    if args.write_release:
+        key = write_release(rows, ROOT/'releases')
+        print(json.dumps({'release':key,'count':len(rows)}))
+    else:
+        print(json.dumps(rows, indent=2, ensure_ascii=False))

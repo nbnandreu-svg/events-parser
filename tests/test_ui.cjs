@@ -19,6 +19,17 @@ const cases=[
  [{...base,audience:'unknown'},false],
 ];
 for (const [e,want] of cases) {scope.e=e;assert.equal(vm.runInContext('isTranslationLead(e)',scope),want);}
-assert.equal((html.match(/onlyIntl && !isTranslationLead\(e\)/g)||[]).length,2,'list and counters use the same filter');
+assert.match(html,/var scoped = filtered\(true\).filter\(inView\)/,'counters reuse the list filters');
+const geoStart = html.indexOf('  function geography(');
+const geoEnd = html.indexOf('  function normalizeType(',geoStart);
+const sections = {abroad:{open:false}, unknown:{open:false}};
+const geo = vm.createContext({$: id => sections[id]});
+vm.runInContext(html.slice(geoStart,geoEnd),geo);
+assert.equal(geo.inView({country:'Россия',audience:'intl'}),true);
+assert.equal(geo.inView({country:'Китай'}),false);
+assert.equal(geo.inView({country:''}),false);
+sections.abroad.open = true;
+assert.equal(geo.inView({country:'Китай'}),true);
+assert.equal(geo.inView({country:''}),false);
 assert(!html.includes('if (onlyIntl && e.audience !== "intl")'));
 console.log('UI syntax and 6 translation-filter scenarios passed.');

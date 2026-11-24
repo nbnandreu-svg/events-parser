@@ -1,0 +1,22 @@
+{
+  "priority_countries": ["Китай", "Беларусь", "Казахстан", "Узбекистан", "Армения", "Азербайджан", "Кыргызстан", "Молдова", "Таджикистан", "Туркменистан"],
+  "featured": [
+    {
+      "id": "ev-2ff6cfaffdbcb3ec",
+      "country": "Китай",
+      "starts_at": "2026-11-23",
+      "vertical": "industry",
+      "text": "Организатор ожидает более 4 000 экспонентов из более чем 30 стран и регионов.",
+      "url": "https://bauma-china.com/en/trade-fair/press/press-releases/detail/bauma-china-venue-expansion-shanghai.html"
+    },
+    {
+      "id": "ev-d183b04dd81b5572",
+      "country": "Узбекистан",
+      "starts_at": "2027-04-19",
+      "vertical": "industry",
+      "text": "В 2026 году выставку посетили более 10 000 человек. Были представлены 35 стран.",
+      "url": "https://centralasia.biwexpo.com/"
+    }
+  ],
+  "corrections": []
+}

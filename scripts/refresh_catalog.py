@@ -44,11 +44,13 @@ def merge_live(existing,incoming):
             old[key]=list(dict.fromkeys(old.get(key,[old.get(field,'')])+item.get(key,[item.get(field,'')])))
         if item.get('source','').endswith('_official'):
             old['organizer_url']=item['organizer_url']
+        if item['title'] != old['title']:
+            old['aliases'] = list(dict.fromkeys([*old.get('aliases',[]), item['title']]))
         for key in ('date_evidence','source_checked_at','parent_event_url'):
             if item.get(key):old[key]=item[key]
         if item.get('vertical') in {'it', 'apk', 'industry'} and item.get('source') in {
             'ict2go', 'conferos', 'tadviser_calendar', 'ict_moscow', 'cnews_conferences',
-            'comnews_conferences', 'jugru_official', 'ite_group_official', 'agravia',
+            'comnews_conferences', 'jugru_official', 'ite_group_official', 'agravia', 'dlg_official', 'seymartec_official',
         }:
             old['vertical']=item['vertical']
         if item.get('description') and (item.get('description_checked_at') or not old.get('description')):old['description']=item['description']
@@ -127,12 +129,16 @@ async def enrich_rows(events,limit=100,ids=None):
         await asyncio.gather(*(one(e) for e in candidates))
     return log
 
-async def refresh_async(source_ids=None,enrich_limit=120,offline=False,review_international=False):
+async def refresh_async(source_ids=None,enrich_limit=120,offline=False,review_international=False,verified=None):
     path=ROOT/'events_upcoming.json';existing=json.loads(path.read_text(encoding='utf-8')) if path.exists() else []
-    existing=[e for e in existing if (e.get('ends_at') or '')>=today().isoformat()];sources=[];incoming=[]
+    # Apply confirmed reschedules in prepare_catalog before excluding expired records.
+    sources=[];incoming=[]
     if not offline:
         items,results=await run_parse(source_ids,kind='event');sources=[r.model_dump(mode='json') for r in results]
         incoming=[convert(i) for i in items if i.published_at]
+    if verified:
+        from confcal_candidates import verified_rows
+        incoming.extend(verified_rows(Path(verified)))
     events,added,updated=merge_live(existing,incoming)
     events,quality_removed=prepare_catalog(events)
     details=await enrich_rows(events,enrich_limit) if enrich_limit and not offline else []
@@ -167,5 +173,6 @@ def refresh(**kwargs):return asyncio.run(refresh_async(**kwargs))
 
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--sources',nargs='*');p.add_argument('--enrich-limit',type=int,default=120);p.add_argument('--offline',action='store_true')
-    args=p.parse_args();r=refresh(source_ids=args.sources,enrich_limit=args.enrich_limit,offline=args.offline)
+    p.add_argument('--verified', help='Organizer-verified ConfCal records')
+    args=p.parse_args();r=refresh(source_ids=args.sources,enrich_limit=args.enrich_limit,offline=args.offline,verified=args.verified)
     print(json.dumps({k:v for k,v in r.items() if k not in ('details','sources','source_runs')},ensure_ascii=False,indent=2))

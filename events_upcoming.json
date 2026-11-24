@@ -677,7 +677,7 @@
     "ends_at": "2026-11-27",
     "city": "Шанхай",
     "country": "Китай",
-    "vertical": "other",
+    "vertical": "industry",
     "type": "Выставка",
     "date_status": "confirmed",
     "organizer_url": "https://expoafisha.ru/events/bauma-china",
@@ -696,7 +696,11 @@
     "sources": [
       "expoafisha"
     ],
-    "id": "ev-2ff6cfaffdbcb3ec"
+    "id": "ev-2ff6cfaffdbcb3ec",
+    "priority_evidence": {
+      "url": "https://bauma-china.com/en/trade-fair/press/press-releases/detail/bauma-china-venue-expansion-shanghai.html",
+      "text": "Организатор ожидает более 4 000 экспонентов из более чем 30 стран и регионов."
+    }
   },
   {
     "title": "Мебель 2026",
@@ -1938,10 +1942,10 @@
     "city": "Челябинск",
     "country": "Россия",
     "audience": "intl",
-    "vertical": "it",
+    "vertical": "industry",
     "type": "Конференция",
     "date_status": "confirmed",
-    "organizer_url": "https://all-events.ru/events/seymartec-digital-tsifrovaya-transformatsiya-v-gornoy-dobyche-metallurgii-energetike-i-neftegazovoy-23",
+    "organizer_url": "https://seymartec.ru/digital-2026",
     "source": "all_events",
     "description": "С 24 по 26 ноября 2026 года в Челябинске состоится XI Международный форум «Seymartec Digital. Цифровая трансформация в горно-металлургической отрасли — 2026». Форум традиционно станет профессиональной площадкой для обсуждения стратегий цифрового развития промышленных холдингов и отдельных предприятий, оценки текущих технических возможностей и ограничений, а также практического опыта реализации цифровых проектов в горно-металлургическом комплексе.",
     "description_source": "https://all-events.ru/events/seymartec-digital-tsifrovaya-transformatsiya-v-gornoy-dobyche-metallurgii-energetike-i-neftegazovoy-23/",
@@ -1949,7 +1953,12 @@
     "source_urls": [
       "https://all-events.ru/events/seymartec-digital-tsifrovaya-transformatsiya-v-gornoy-dobyche-metallurgii-energetike-i-neftegazovoy-23/",
       "https://all-events.ru/events/seymartec-digital-tsifrovaya-transformatsiya-v-gornoy-dobyche-metallurgii-energetike-i-neftegazovoy-23",
-      "https://ict2go.ru/events/66877/"
+      "https://ict2go.ru/events/66877/",
+      "https://expomap.ru/conference/seymartec-digital",
+      "https://expomap.ru/conference/seymartec-digital/",
+      "https://expoafisha.ru/events/seymartec-digital/",
+      "https://confec.ru/seymartec-digital-2026",
+      "https://seymartec.ru/digital-2026/"
     ],
     "translation_status": "declared",
     "translation_evidence": [
@@ -1957,7 +1966,7 @@
         "kind": "declared_marker",
         "field": "description",
         "text": "С 24 по 26 ноября 2026 года в Челябинске состоится XI Международный форум «Seymartec Digital. Цифровая трансформация в горно-металлургической отрасли — 2026». Форум традиционно станет профессиональной площадкой для обсуждения стратегий цифрового р",
-        "url": "https://all-events.ru/events/seymartec-digital-tsifrovaya-transformatsiya-v-gornoy-dobyche-metallurgii-energetike-i-neftegazovoy-23",
+        "url": "https://seymartec.ru/digital-2026",
         "edition_year": "2026"
       }
     ],
@@ -1968,7 +1977,11 @@
     },
     "sources": [
       "all_events",
-      "ict2go"
+      "ict2go",
+      "expomap_conferences",
+      "expoafisha",
+      "confec_it",
+      "seymartec_official"
     ],
     "id": "ev-3e001a2e3cc9b689",
     "translation_review": {
@@ -1980,39 +1993,12 @@
     "language_checked_at": "2026-10-01T01:48:51+03:00",
     "language_evidence": [],
     "international_reason": "Заявлен международный статус",
-    "date_evidence": "24.11.2026 | Челябинск",
-    "source_checked_at": "2026-11-24T11:42:36+03:00"
-  },
-  {
-    "title": "Seymartec digital 2026",
-    "starts_at": "2026-11-24",
-    "ends_at": "2026-11-26",
-    "city": "Челябинск",
-    "country": "Россия",
-    "vertical": "industry",
-    "type": "Конференция",
-    "date_status": "confirmed",
-    "organizer_url": "https://expomap.ru/conference/seymartec-digital",
-    "source": "expomap_conferences",
-    "description": "Цифровая трансформация в горной добыче, металлургии, энергетике и нефтегазовой отрасли.",
-    "date_evidence": "24–26 ноября (2026)",
-    "source_checked_at": "2026-11-24T11:42:36+03:00",
-    "audience": "unknown",
-    "translation_status": "unknown",
-    "translation_evidence": [],
-    "international_reason": "Международные признаки в карточке не указаны",
-    "source_urls": [
-      "https://expomap.ru/conference/seymartec-digital",
-      "https://expomap.ru/conference/seymartec-digital/",
-      "https://expoafisha.ru/events/seymartec-digital/",
-      "https://confec.ru/seymartec-digital-2026"
-    ],
-    "sources": [
-      "expomap_conferences",
-      "expoafisha",
-      "confec_it"
-    ],
-    "id": "ev-93fa8482f5720016"
+    "date_evidence": "24 - 26 ноября 2026",
+    "source_checked_at": "2026-11-24T12:28:54+03:00",
+    "aliases": [
+      "Seymartec digital 2026",
+      "Seymartec digital. Цифровая трансформация и информационная безопасность в тяжелой промышленности — 2026"
+    ]
   },
   {
     "title": "Sfitex - 2026",
@@ -37222,6 +37208,32 @@
     "id": "ev-deb7af4e4c6f74c2"
   },
   {
+    "title": "Быстро находите нужное с YDB",
+    "starts_at": "2026-12-10",
+    "ends_at": "2026-12-10",
+    "country": "",
+    "city": "Онлайн",
+    "type": "Вебинар",
+    "vertical": "it",
+    "source": "confcal_verified",
+    "organizer_url": "https://yandex.cloud/ru/events/1614",
+    "source_urls": [
+      "https://yandex.cloud/ru/events/1614",
+      "https://confcal.rpa.icu/event/812"
+    ],
+    "date_evidence": "10 декабря 2026 г., 12:00, онлайн. Страница мероприятия Yandex Cloud.",
+    "date_status": "confirmed",
+    "description": "",
+    "audience": "unknown",
+    "translation_status": "outside_russia",
+    "translation_evidence": [],
+    "international_reason": "",
+    "sources": [
+      "confcal_verified"
+    ],
+    "id": "ev-e17958309ec5cdee"
+  },
+  {
     "title": "Быстро находите нужное с YDB: гибридный поиск для ИИ-агентов и рекомендаций",
     "starts_at": "2026-12-10",
     "ends_at": "2026-12-10",
@@ -48221,6 +48233,33 @@
     "source_checked_at": "2026-11-24T11:42:36+03:00"
   },
   {
+    "title": "DLG Technicians' Conference",
+    "starts_at": "2027-01-26",
+    "ends_at": "2027-01-27",
+    "city": "Ганновер",
+    "country": "Германия",
+    "vertical": "apk",
+    "type": "Конференция",
+    "date_status": "confirmed",
+    "organizer_url": "https://dlg.org/en/events/dlg-technicians-conference-2027",
+    "source": "dlg_official",
+    "description": "",
+    "date_evidence": "26/27 January 2027",
+    "source_checked_at": "2026-11-24T12:30:18+03:00",
+    "audience": "unknown",
+    "translation_status": "outside_russia",
+    "translation_evidence": [],
+    "international_reason": "",
+    "source_urls": [
+      "https://dlg.org/en/events/dlg-technicians-conference-2027",
+      "https://www.dlg.org/en/events/dlg-technicians-conference-2027"
+    ],
+    "sources": [
+      "dlg_official"
+    ],
+    "id": "ev-6fdd7f8e1974e6a6"
+  },
+  {
     "title": "DairyTech 2027",
     "starts_at": "2027-01-26",
     "ends_at": "2027-01-28",
@@ -50197,6 +50236,33 @@
     "international_reason": ""
   },
   {
+    "title": "Careers Day @ISM",
+    "starts_at": "2027-01-31",
+    "ends_at": "2027-01-31",
+    "city": "Кельн",
+    "country": "Германия",
+    "vertical": "apk",
+    "type": "Выставка",
+    "date_status": "confirmed",
+    "organizer_url": "https://dlg.org/en/events/dlg-careers-day-ism-2027",
+    "source": "dlg_official",
+    "description": "",
+    "date_evidence": "31 January 2027",
+    "source_checked_at": "2026-11-24T12:30:18+03:00",
+    "audience": "unknown",
+    "translation_status": "outside_russia",
+    "translation_evidence": [],
+    "international_reason": "",
+    "source_urls": [
+      "https://dlg.org/en/events/dlg-careers-day-ism-2027",
+      "https://www.dlg.org/en/events/dlg-careers-day-ism-2027"
+    ],
+    "sources": [
+      "dlg_official"
+    ],
+    "id": "ev-804f86a85ab08430"
+  },
+  {
     "title": "IP&IT Law 2027. Прием заявок",
     "starts_at": "2027-01-31",
     "ends_at": "2027-01-31",
@@ -50224,6 +50290,33 @@
     "id": "ev-a272db7a90a88e41"
   },
   {
+    "title": "ISM Ingredients | ISM",
+    "starts_at": "2027-01-31",
+    "ends_at": "2027-02-03",
+    "city": "Кельн",
+    "country": "Германия",
+    "vertical": "apk",
+    "type": "Выставка",
+    "date_status": "confirmed",
+    "organizer_url": "https://ism-cologne.com/trade-fair/ism-ingredients",
+    "source": "dlg_official",
+    "description": "",
+    "date_evidence": "31 January–3 February 2027",
+    "source_checked_at": "2026-11-24T12:30:18+03:00",
+    "audience": "unknown",
+    "translation_status": "outside_russia",
+    "translation_evidence": [],
+    "international_reason": "",
+    "source_urls": [
+      "https://ism-cologne.com/trade-fair/ism-ingredients",
+      "https://www.ism-cologne.com/trade-fair/ism-ingredients/"
+    ],
+    "sources": [
+      "dlg_official"
+    ],
+    "id": "ev-29cf4079fd2426cf"
+  },
+  {
     "title": "ISM Manufacturing 2027",
     "starts_at": "2027-01-31",
     "ends_at": "2027-02-03",
@@ -50232,23 +50325,28 @@
     "vertical": "apk",
     "type": "Выставка",
     "date_status": "confirmed",
-    "organizer_url": "https://expomap.ru/expo/ism-manufacturing",
+    "organizer_url": "https://ism-cologne.com/trade-fair/ism-manufacturing",
     "source": "expomap_food",
     "description": "Выставка оборудования и технологий для производства кондитерских изделий.",
-    "date_evidence": "2027-01-31T00:00:00 2027-02-03T23:59:59.999999",
-    "source_checked_at": "2026-11-24T11:42:36+03:00",
+    "date_evidence": "31 January–3 February 2027",
+    "source_checked_at": "2026-11-24T12:30:18+03:00",
     "audience": "unknown",
     "translation_status": "outside_russia",
     "translation_evidence": [],
     "international_reason": "",
     "source_urls": [
       "https://expomap.ru/expo/ism-manufacturing",
-      "https://expomap.ru/expo/ism-manufacturing/"
+      "https://expomap.ru/expo/ism-manufacturing/",
+      "https://www.ism-cologne.com/trade-fair/ism-manufacturing/"
     ],
     "sources": [
-      "expomap_food"
+      "expomap_food",
+      "dlg_official"
     ],
-    "id": "ev-8520dd6604cc561f"
+    "id": "ev-8520dd6604cc561f",
+    "aliases": [
+      "ISM Manufacturing | ISM"
+    ]
   },
   {
     "title": "Ism 2027",
@@ -58018,7 +58116,7 @@
     "vertical": "apk",
     "type": "Выставка",
     "date_status": "confirmed",
-    "organizer_url": "https://expomap.ru",
+    "organizer_url": "https://dlg.org/en/events/anuga-foodtec-2027",
     "source": "expomap",
     "description": "Международная выставка технологий производства продуктов питания и напитков.",
     "translation_status": "outside_russia",
@@ -58026,16 +58124,21 @@
     "source_urls": [
       "https://expomap.ru",
       "https://expomap.ru/expo/anuga-foodtec",
-      "https://expomap.ru/expo/anuga-foodtec/"
+      "https://expomap.ru/expo/anuga-foodtec/",
+      "https://www.dlg.org/en/events/anuga-foodtec-2027"
     ],
     "sources": [
       "expomap",
-      "expomap_food"
+      "expomap_food",
+      "dlg_official"
     ],
     "id": "ev-8ec62b37dc9a34c1",
     "international_reason": "",
-    "date_evidence": "2027-02-23T00:00:00 2027-02-26T23:59:59.999999",
-    "source_checked_at": "2026-11-24T11:42:36+03:00"
+    "date_evidence": "23–26 February 2027",
+    "source_checked_at": "2026-11-24T12:30:18+03:00",
+    "aliases": [
+      "Anuga FoodTec"
+    ]
   },
   {
     "title": "CPM Collection Premiere Moscow",
@@ -65456,22 +65559,32 @@
     "vertical": "industry",
     "type": "Конференция",
     "date_status": "confirmed",
-    "organizer_url": "https://expomap.ru/conference/seymartec-energy",
+    "organizer_url": "https://seymartec.ru/energy-2027",
     "source": "expomap_conferences",
     "description": "Энергообеспечение и энергоэффективность в ГМК, машиностроении, энергетике и нефтегазовом секторе.",
-    "date_evidence": "2027-03-16T00:00:00 2027-03-18T23:59:59.999999",
-    "source_checked_at": "2026-11-24T11:42:36+03:00",
+    "date_evidence": "16 – 18 марта 2027",
+    "source_checked_at": "2026-11-24T12:28:54+03:00",
     "audience": "unknown",
     "translation_status": "unknown",
     "translation_evidence": [],
     "international_reason": "Международные признаки в карточке не указаны",
     "source_urls": [
-      "https://expomap.ru/conference/seymartec-energy"
+      "https://expomap.ru/conference/seymartec-energy",
+      "https://expoafisha.ru/events/seymartek-enerdzhi",
+      "https://expoafisha.ru/events/seymartek-enerdzhi/",
+      "https://seymartec.ru/energy-2027/"
     ],
     "sources": [
-      "expomap_conferences"
+      "expomap_conferences",
+      "expoafisha",
+      "seymartec_official"
     ],
-    "id": "ev-72e897961cda8e64"
+    "id": "ev-72e897961cda8e64",
+    "aliases": [
+      "Сеймартек Энерджи",
+      "Сеймартек Энерджи. Энергообеспечение и энергоэффективность в ГМК, энергетике и нефтегазовом секторе — 2027"
+    ],
+    "language_evidence": []
   },
   {
     "title": "SkladTech 2027",
@@ -66129,33 +66242,6 @@
     "language_checked_at": "2026-10-01T01:59:21+03:00",
     "language_evidence": [],
     "international_reason": "Международные признаки в карточке не указаны"
-  },
-  {
-    "title": "Сеймартек Энерджи",
-    "starts_at": "2027-03-16",
-    "ends_at": "2027-03-18",
-    "city": "Челябинск",
-    "country": "Россия",
-    "vertical": "other",
-    "type": "Конференция",
-    "date_status": "confirmed",
-    "organizer_url": "https://expoafisha.ru/events/seymartek-enerdzhi",
-    "source": "expoafisha",
-    "description": "",
-    "date_evidence": "16–18 марта 2027 (2027)",
-    "source_checked_at": "2026-11-24T11:42:36+03:00",
-    "audience": "unknown",
-    "translation_status": "unknown",
-    "translation_evidence": [],
-    "international_reason": "Международные признаки в карточке не указаны",
-    "source_urls": [
-      "https://expoafisha.ru/events/seymartek-enerdzhi",
-      "https://expoafisha.ru/events/seymartek-enerdzhi/"
-    ],
-    "sources": [
-      "expoafisha"
-    ],
-    "id": "ev-f0f02dc111e0d571"
   },
   {
     "title": "СкладТех",
@@ -77981,22 +78067,31 @@
     "vertical": "industry",
     "type": "Конференция",
     "date_status": "confirmed",
-    "organizer_url": "https://expomap.ru/conference/seymartec-mining-effektivnost-gornodobyvajuschego-proizvodstva",
+    "organizer_url": "https://seymartec.ru/mining-2027",
     "source": "expomap_conferences",
     "description": "",
-    "date_evidence": "2027-04-13T00:00:00 2027-04-15T23:59:59.999999",
-    "source_checked_at": "2026-11-24T11:42:36+03:00",
+    "date_evidence": "13 – 15 апреля 2027",
+    "source_checked_at": "2026-11-24T12:28:54+03:00",
     "audience": "unknown",
     "translation_status": "unknown",
     "translation_evidence": [],
     "international_reason": "Международные признаки в карточке не указаны",
     "source_urls": [
-      "https://expomap.ru/conference/seymartec-mining-effektivnost-gornodobyvajuschego-proizvodstva"
+      "https://expomap.ru/conference/seymartec-mining-effektivnost-gornodobyvajuschego-proizvodstva",
+      "https://expoafisha.ru/events/seymartek-mayning-effektivnost-gornodobyvayuschego-proizvodstva",
+      "https://seymartec.ru/mining-2027/"
     ],
     "sources": [
-      "expomap_conferences"
+      "expomap_conferences",
+      "expoafisha",
+      "seymartec_official"
     ],
-    "id": "ev-482ad477cb9e3b43"
+    "id": "ev-482ad477cb9e3b43",
+    "aliases": [
+      "Сеймартек Майнинг. Эффективность горнодобывающего производства",
+      "Сеймартек Майнинг. Эффективность горнодобывающего производства — 2027"
+    ],
+    "language_evidence": []
   },
   {
     "title": "SobMaExpo",
@@ -78259,32 +78354,6 @@
     "international_reason": "Международные признаки в карточке не указаны",
     "date_evidence": "13–15 апреля 2027 (2027)",
     "source_checked_at": "2026-11-24T11:42:36+03:00"
-  },
-  {
-    "title": "Сеймартек Майнинг. Эффективность горнодобывающего производства",
-    "starts_at": "2027-04-13",
-    "ends_at": "2027-04-15",
-    "city": "Челябинск",
-    "country": "Россия",
-    "vertical": "industry",
-    "type": "Конференция",
-    "date_status": "confirmed",
-    "organizer_url": "https://expoafisha.ru/events/seymartek-mayning-effektivnost-gornodobyvayuschego-proizvodstva",
-    "source": "expoafisha",
-    "description": "",
-    "date_evidence": "13–15 апреля 2027 (2027)",
-    "source_checked_at": "2026-11-24T11:42:36+03:00",
-    "audience": "unknown",
-    "translation_status": "unknown",
-    "translation_evidence": [],
-    "international_reason": "Международные признаки в карточке не указаны",
-    "source_urls": [
-      "https://expoafisha.ru/events/seymartek-mayning-effektivnost-gornodobyvayuschego-proizvodstva"
-    ],
-    "sources": [
-      "expoafisha"
-    ],
-    "id": "ev-1c0ac0b0c312af9b"
   },
   {
     "title": "Agricultural Chemicals and Fertilizer Fair Antalya 2027",
@@ -80246,7 +80315,11 @@
       "innoprom"
     ],
     "id": "ev-d183b04dd81b5572",
-    "international_reason": ""
+    "international_reason": "",
+    "priority_evidence": {
+      "url": "https://centralasia.biwexpo.com/",
+      "text": "В 2026 году выставку посетили более 10 000 человек. Были представлены 35 стран."
+    }
   },
   {
     "title": "НейроИнфекции в XXI веке",
@@ -81527,6 +81600,33 @@
     "international_reason": "Международные признаки в карточке не указаны",
     "date_evidence": "2027-04-21T00:00:00 2027-04-23T23:59:59.999999",
     "source_checked_at": "2026-10-01T07:50:21+03:00"
+  },
+  {
+    "title": "Inhouse Farming − Feed & Food Show",
+    "starts_at": "2027-04-21",
+    "ends_at": "2027-04-22",
+    "city": "Гамбург",
+    "country": "Германия",
+    "vertical": "apk",
+    "type": "Выставка",
+    "date_status": "confirmed",
+    "organizer_url": "https://inhouse-farming.com/en/feed-food-convention",
+    "source": "dlg_official",
+    "description": "",
+    "date_evidence": "21/22 April 2027",
+    "source_checked_at": "2026-11-24T12:30:18+03:00",
+    "audience": "unknown",
+    "translation_status": "outside_russia",
+    "translation_evidence": [],
+    "international_reason": "",
+    "source_urls": [
+      "https://inhouse-farming.com/en/feed-food-convention",
+      "https://www.inhouse-farming.com/en/feed-food-convention"
+    ],
+    "sources": [
+      "dlg_official"
+    ],
+    "id": "ev-23eed9e98d95bead"
   },
   {
     "title": "InterFood Krasnodar 2027",
@@ -90778,6 +90878,32 @@
     "source_checked_at": "2026-11-24T11:42:36+03:00"
   },
   {
+    "title": "EPP Congress",
+    "starts_at": "2027-05-26",
+    "ends_at": "2027-05-28",
+    "city": "Ostend",
+    "country": "Бельгия",
+    "vertical": "apk",
+    "type": "Конференция",
+    "date_status": "confirmed",
+    "organizer_url": "https://dlg.org/en/agriculture/networks/european-pig-producers/epp-events/epp-congress-2027-ostend-belgium",
+    "source": "dlg_official",
+    "description": "",
+    "date_evidence": "26–28 May 2027",
+    "source_checked_at": "2026-11-24T12:30:18+03:00",
+    "audience": "unknown",
+    "translation_status": "outside_russia",
+    "translation_evidence": [],
+    "international_reason": "",
+    "source_urls": [
+      "https://dlg.org/en/agriculture/networks/european-pig-producers/epp-events/epp-congress-2027-ostend-belgium"
+    ],
+    "sources": [
+      "dlg_official"
+    ],
+    "id": "ev-a9fbd2215bc166bd"
+  },
+  {
     "title": "Expo FoodTech 2027",
     "starts_at": "2027-05-26",
     "ends_at": "2027-05-27",
@@ -97263,6 +97389,32 @@
       "expoafisha"
     ],
     "id": "ev-4b5041a62d9009e7"
+  },
+  {
+    "title": "Сеймартек Энерджи СНГ. Энергообеспечение и энергоэффективность в ГМК, энергетике и нефтегазовом секторе — 2027",
+    "starts_at": "2027-06-29",
+    "ends_at": "2027-06-30",
+    "city": "Астана",
+    "country": "Казахстан",
+    "vertical": "industry",
+    "type": "Форум",
+    "date_status": "confirmed",
+    "organizer_url": "https://seymartec.ru/energy-cis-2027",
+    "source": "seymartec_official",
+    "description": "",
+    "date_evidence": "29 – 30 июня 2027",
+    "source_checked_at": "2026-11-24T12:28:54+03:00",
+    "audience": "unknown",
+    "translation_status": "outside_russia",
+    "translation_evidence": [],
+    "international_reason": "",
+    "source_urls": [
+      "https://seymartec.ru/energy-cis-2027"
+    ],
+    "sources": [
+      "seymartec_official"
+    ],
+    "id": "ev-22824c34c11de452"
   },
   {
     "title": "Технологии военной медицины и реабилитации 2027",
@@ -108459,22 +108611,27 @@
     "vertical": "industry",
     "type": "Конференция",
     "date_status": "confirmed",
-    "organizer_url": "https://expomap.ru/conference/seymartec-toir",
+    "organizer_url": "https://seymartec.ru/mro-2027",
     "source": "expomap_conferences",
     "description": "",
-    "date_evidence": "2027-10-12T00:00:00 2027-10-13T23:59:59.999999",
-    "source_checked_at": "2026-11-24T11:42:36+03:00",
+    "date_evidence": "12–13 октября 2027",
+    "source_checked_at": "2026-11-24T12:28:54+03:00",
     "audience": "unknown",
     "translation_status": "unknown",
     "translation_evidence": [],
     "international_reason": "Международные признаки в карточке не указаны",
     "source_urls": [
-      "https://expomap.ru/conference/seymartec-toir"
+      "https://expomap.ru/conference/seymartec-toir",
+      "https://seymartec.ru/mro-2027/"
     ],
     "sources": [
-      "expomap_conferences"
+      "expomap_conferences",
+      "seymartec_official"
     ],
-    "id": "ev-1d9c09ab0227a089"
+    "id": "ev-1d9c09ab0227a089",
+    "aliases": [
+      "Сеймартек ТОиР. Повышение эффективности ТОиР на предприятиях ТЭК, горно-металлургического комплекса и машиностроения — 2027"
+    ]
   },
   {
     "title": "TransLogistica Kazakhstan",
@@ -111796,6 +111953,58 @@
     "id": "ev-1f80b372c1e62588"
   },
   {
+    "title": "AGRITECHNICA",
+    "starts_at": "2027-11-14",
+    "ends_at": "2027-11-20",
+    "city": "Ганновер",
+    "country": "Германия",
+    "vertical": "apk",
+    "type": "Выставка",
+    "date_status": "confirmed",
+    "organizer_url": "https://agritechnica.com/en",
+    "source": "dlg_official",
+    "description": "",
+    "date_evidence": "14–20 November 2027",
+    "source_checked_at": "2026-11-24T12:30:18+03:00",
+    "audience": "unknown",
+    "translation_status": "outside_russia",
+    "translation_evidence": [],
+    "international_reason": "",
+    "source_urls": [
+      "https://agritechnica.com/en"
+    ],
+    "sources": [
+      "dlg_official"
+    ],
+    "id": "ev-9c1adba654ff6e26"
+  },
+  {
+    "title": "SYSTEMS & COMPONENTS",
+    "starts_at": "2027-11-14",
+    "ends_at": "2027-11-20",
+    "city": "Ганновер",
+    "country": "Германия",
+    "vertical": "apk",
+    "type": "Выставка",
+    "date_status": "confirmed",
+    "organizer_url": "https://systemsandcomponents.com/en",
+    "source": "dlg_official",
+    "description": "",
+    "date_evidence": "14–20 November 2027",
+    "source_checked_at": "2026-11-24T12:30:18+03:00",
+    "audience": "unknown",
+    "translation_status": "outside_russia",
+    "translation_evidence": [],
+    "international_reason": "",
+    "source_urls": [
+      "https://systemsandcomponents.com/en"
+    ],
+    "sources": [
+      "dlg_official"
+    ],
+    "id": "ev-135bd700119c5582"
+  },
+  {
     "title": "CleanExpo Moscow 2027",
     "starts_at": "2027-11-16",
     "ends_at": "2027-11-18",
@@ -112746,6 +112955,32 @@
     "id": "ev-41b7b27860b82021"
   },
   {
+    "title": "Сеймартек Энерджи Генерация. Энергообеспечение и энергоэффективность предприятий большой генерации — 2027",
+    "starts_at": "2027-12-01",
+    "ends_at": "2027-12-02",
+    "city": "Екатеринбург",
+    "country": "Россия",
+    "vertical": "industry",
+    "type": "Форум",
+    "date_status": "confirmed",
+    "organizer_url": "https://seymartec.ru/energy-gen-2027",
+    "source": "seymartec_official",
+    "description": "",
+    "date_evidence": "1 – 2 декабря 2027",
+    "source_checked_at": "2026-11-24T12:28:54+03:00",
+    "audience": "unknown",
+    "translation_status": "unknown",
+    "translation_evidence": [],
+    "international_reason": "Международные признаки в карточке не указаны",
+    "source_urls": [
+      "https://seymartec.ru/energy-gen-2027"
+    ],
+    "sources": [
+      "seymartec_official"
+    ],
+    "id": "ev-27cc1f8f96d87456"
+  },
+  {
     "title": "АгроФинТех: цифровой залог, скоринг и токенизация АПК 2027",
     "starts_at": "2027-12-02",
     "ends_at": "2027-12-02",
@@ -113591,6 +113826,32 @@
     "id": "ev-3c2d8ec8f55f71c9"
   },
   {
+    "title": "DLG-Feldtage",
+    "starts_at": "2028-06-20",
+    "ends_at": "2028-06-22",
+    "city": "Kassel",
+    "country": "Германия",
+    "vertical": "apk",
+    "type": "Выставка",
+    "date_status": "confirmed",
+    "organizer_url": "https://dlg-feldtage.de/en",
+    "source": "dlg_official",
+    "description": "",
+    "date_evidence": "20–22 June 2028",
+    "source_checked_at": "2026-11-24T12:30:18+03:00",
+    "audience": "unknown",
+    "translation_status": "outside_russia",
+    "translation_evidence": [],
+    "international_reason": "",
+    "source_urls": [
+      "https://dlg-feldtage.de/en"
+    ],
+    "sources": [
+      "dlg_official"
+    ],
+    "id": "ev-bea6eb99f1e2b394"
+  },
+  {
     "title": "Drinktec 2028",
     "starts_at": "2028-09-11",
     "ends_at": "2028-09-15",
@@ -113654,6 +113915,84 @@
       "expoafisha"
     ],
     "id": "ev-40072ced74ba07a9"
+  },
+  {
+    "title": "EnergyDecentral",
+    "starts_at": "2028-11-14",
+    "ends_at": "2028-11-17",
+    "city": "Ганновер",
+    "country": "Германия",
+    "vertical": "apk",
+    "type": "Выставка",
+    "date_status": "confirmed",
+    "organizer_url": "https://energy-decentral.com/en",
+    "source": "dlg_official",
+    "description": "",
+    "date_evidence": "14–17 November 2028",
+    "source_checked_at": "2026-11-24T12:30:18+03:00",
+    "audience": "unknown",
+    "translation_status": "outside_russia",
+    "translation_evidence": [],
+    "international_reason": "",
+    "source_urls": [
+      "https://energy-decentral.com/en"
+    ],
+    "sources": [
+      "dlg_official"
+    ],
+    "id": "ev-be6107afea89879b"
+  },
+  {
+    "title": "EuroTier",
+    "starts_at": "2028-11-14",
+    "ends_at": "2028-11-17",
+    "city": "Ганновер",
+    "country": "Германия",
+    "vertical": "apk",
+    "type": "Выставка",
+    "date_status": "confirmed",
+    "organizer_url": "https://eurotier.com/en",
+    "source": "dlg_official",
+    "description": "",
+    "date_evidence": "14–17 November 2028",
+    "source_checked_at": "2026-11-24T12:30:18+03:00",
+    "audience": "unknown",
+    "translation_status": "outside_russia",
+    "translation_evidence": [],
+    "international_reason": "",
+    "source_urls": [
+      "https://eurotier.com/en"
+    ],
+    "sources": [
+      "dlg_official"
+    ],
+    "id": "ev-a795d3ec3f15e923"
+  },
+  {
+    "title": "Inhouse Farming − Feed & Food Show",
+    "starts_at": "2028-11-14",
+    "ends_at": "2028-11-17",
+    "city": "Ганновер",
+    "country": "Германия",
+    "vertical": "apk",
+    "type": "Выставка",
+    "date_status": "confirmed",
+    "organizer_url": "https://inhouse-farming.com/en",
+    "source": "dlg_official",
+    "description": "",
+    "date_evidence": "14–17 November 2028",
+    "source_checked_at": "2026-11-24T12:30:18+03:00",
+    "audience": "unknown",
+    "translation_status": "outside_russia",
+    "translation_evidence": [],
+    "international_reason": "",
+    "source_urls": [
+      "https://inhouse-farming.com/en"
+    ],
+    "sources": [
+      "dlg_official"
+    ],
+    "id": "ev-f3545928854302f9"
   },
   {
     "title": "Термообработка",

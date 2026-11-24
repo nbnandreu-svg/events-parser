@@ -6,6 +6,18 @@ def page_links(soup,base,source):
     root=urlsplit(source['url']);params=set(source.get('pagination_params') or ['page'])
     root_query={k:v for k,v in parse_qsl(root.query) if k not in params}
     result=set()
+    if source.get('id') == 'dlg_official':
+        for pager in soup.select('.ajax-pager[data-ajax-uri][data-target-cid]'):
+            endpoint=urlsplit(urljoin(base,pager['data-ajax-uri']))
+            if endpoint.netloc != root.netloc:
+                continue
+            for link in pager.select('a[data-ajax-page]'):
+                page=link['data-ajax-page']
+                if page.isdigit() and int(page)>1:
+                    params=dict(parse_qsl(endpoint.query))
+                    params.update({'requestParameter[ajaxPage]':page, 'requestParameter[ajaxCid]':pager['data-target-cid']})
+                    result.add(urlunsplit((endpoint.scheme, endpoint.netloc, endpoint.path, urlencode(params), '')))
+        return sorted(result)
     for a in soup.select('a[href]'):
         url=urljoin(base,a['href']);p=urlsplit(url)
         if p.netloc.lower().removeprefix('www.')!=root.netloc.lower().removeprefix('www.'):continue

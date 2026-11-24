@@ -866,3 +866,21 @@ sources:
   region: РФ
   enabled: true
   fallback_links: false
+- id: seymartec_official
+  name: Сеймартек
+  url: https://seymartec.ru/wp-json/wp/v2/posts
+  type: wordpress_events
+  kind: event
+  topic: industry
+  enabled: true
+  region: РФ
+- id: dlg_official
+  name: DLG
+  url: https://www.dlg.org/en/events
+  type: html
+  kind: event
+  topic: apk
+  enabled: true
+  region: Мир
+  pagination: true
+  fallback_links: false

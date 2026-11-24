@@ -112,6 +112,50 @@ def ite_exhibitions(source, soup):
 def parse_special(source,soup):
     from event_engine import clean_text, make_item, extract_event_dates
     sid=source['id']
+    if sid == 'seymartec_official':
+        heading = soup.select_one('.conference-head h1')
+        info = next((n for n in soup.select('.conference-head .info') if re.search(r'\b20\d{2}\b', n.get_text(' ',strip=True))), None)
+        if not heading or not info:
+            return []
+        parts = [p.strip() for p in info.get_text(' ', strip=True).split('|')]
+        start, end = extract_event_dates(parts[0])
+        if not start or not re.search(r'\b20\d{2}\b', parts[0]):
+            return []
+        from venue_rules import venue_country
+        city = parts[-1] if len(parts) > 1 else ''
+        row = make_item(source=source, title=heading.get_text(' ',strip=True), url=source['url'],
+                        published_at=start, date_end=end, location=city, event_type='форум', date_evidence=parts[0])
+        row.country = venue_country({'city':city}) or ('Россия' if city in {'Челябинск','Екатеринбург','Москва'} else '')
+        return [row]
+    if sid == 'dlg_official':
+        import calendar
+        months = {m:i for i,m in enumerate(calendar.month_name) if m}
+        cities = {'Hanover':'Ганновер','Cologne':'Кельн','Hamburg':'Гамбург'}
+        countries = {'Germany':'Германия','Belgium':'Бельгия','Netherlands':'Нидерланды'}
+        rows = []
+        for card in soup.select('.teaser-event'):
+            link = card.select_one('.teaser__title a[href]')
+            when = card.select_one('.teaser__date')
+            if not link or not when:
+                continue
+            raw, _, place = when.get_text(' ',strip=True).partition('|')
+            match = re.fullmatch(r'(\d{1,2})(?:\s+([A-Za-z]+))?(?:\s*[/–—-]\s*(\d{1,2}))?\s+([A-Za-z]+)\s+(20\d{2})', raw.strip())
+            if not match:
+                continue
+            first, first_month, last, month, year = match.groups()
+            if month not in months or (first_month and first_month not in months):
+                continue
+            start_month = months[first_month or month]
+            start = datetime(int(year) - int(start_month > months[month]), start_month, int(first))
+            end = datetime(int(year), months[month], int(last or first))
+            city, _, country = place.strip().partition(',')
+            badge = card.select_one('.badge')
+            row = make_item(source=source, title=link.get_text(' ', strip=True), url=urljoin(source['url'],link['href']),
+                            published_at=start,date_end=end,location=cities.get(city,city),
+                            event_type='выставка' if badge and badge.get_text(strip=True)=='Fair' else 'конференция',date_evidence=raw)
+            row.country = countries.get(country.strip(),country.strip()) or ('Германия' if city in cities else '')
+            rows.append(row)
+        return rows
     if sid == 'jugru_official':
         return jugru_conferences(source, soup)
     if sid == 'ite_group_official':

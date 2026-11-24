@@ -413,7 +413,13 @@
   .panel.is-active { display: block; }
 
   /* EventRow — real product cards */
-  #event-list {
+  #geography { display: grid; gap: .4rem; margin: 0 0 1rem; }
+  #geography summary { cursor: pointer; padding: .7rem 0; font-weight: 600; }
+  #geography summary span { color: var(--muted); margin-left: .4rem; }
+  #geography details[open] { border-bottom: 1px solid #dce2ef; padding-bottom: .7rem; }
+  #geography h3, #russia-heading { margin: .65rem 0; }
+  #geography .scale-note { margin: .35rem 0 0; font-size: .87rem; }
+  #event-list, .geo-list {
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -823,7 +829,7 @@
   }
 </style>
 
-<script src="./events-data.js?v=20261124"></script>
+<script src="./events-data.js?v=20261124-geo"></script>
 </head>
 <body>
   <div class="app">
@@ -859,12 +865,6 @@
         <button type="button" class="chip-vertical" data-vertical="other" id="chip-other">Прочие <span class="chip-count" id="chip-count-other">0</span></button>
       </div>
 
-      <div class="filter-row" id="chips-region" role="group" aria-label="Регион">
-        <span class="filter-label">Регион</span>
-        <button type="button" class="chip-region is-active" data-region="cis" id="chip-region-cis" title="Россия и СНГ">РФ и СНГ</button>
-        <button type="button" class="chip-region" data-region="all" id="chip-region-all">Все страны</button>
-      </div>
-
       <div class="filter-row">
         <label class="filter-field" for="filter-city">
           <span>Город</span>
@@ -875,12 +875,13 @@
           <select id="filter-country"><option value="">Все страны</option></select>
         </label>
         <label class="toggle-intl" for="filter-intl" title="Мероприятия в России с международным статусом по названию, темам, описанию или составу участников.">
-          <span class="toggle-intl__label">Международные мероприятия</span>
+          <span class="toggle-intl__label">С международным участием в России</span>
           <span class="tumbler">
             <input type="checkbox" id="filter-intl" aria-label="Международные мероприятия" />
             <span class="tumbler__track" aria-hidden="true"></span>
           </span>
         </label>
+        <label class="toggle-confirmed"><input type="checkbox" id="filter-new" disabled /> Новое в выпуске</label>
         <label class="filter-field" for="filter-type">
           <span>Тип мероприятия</span>
           <select id="filter-type" aria-label="Тип мероприятия">
@@ -917,7 +918,18 @@
       <div id="meta-hint"></div>
     </div>
 
+    <div id="geography">
+      <details id="abroad"><summary>За рубежом <span id="abroad-count"></span></summary>
+        <div id="abroad-list" class="geo-list"></div>
+        <button type="button" class="btn btn-ghost" id="abroad-more" hidden>Показать еще</button>
+      </details>
+      <details id="unknown"><summary>Страна уточняется <span id="unknown-count"></span></summary>
+        <div id="unknown-list" class="geo-list"></div>
+        <button type="button" class="btn btn-ghost" id="unknown-more" hidden>Показать еще</button>
+      </details>
+    </div>
     <section id="panel-list" class="panel is-active" role="tabpanel" aria-labelledby="tab-list">
+      <h2 id="russia-heading">В России</h2>
       <div id="event-list"></div>
       <div id="list-empty" class="empty-state" hidden></div>
       <div id="list-more-wrap" hidden>
@@ -989,7 +1001,8 @@
   var state = {
     events: [],
     vertical: "all",
-    region: "cis",
+    geoPages: {abroad: 1, unknown: 1},
+    releaseIds: new Set(),
     enrichAvailable: /^(localhost|127\.0\.0\.1)$/.test(location.hostname),
     activeEventId: null,
     tab: "list",
@@ -1194,7 +1207,7 @@
     return (
       searchTerms().length > 0 ||
       state.vertical !== "all" ||
-      state.region !== "cis" ||
+      $("filter-new").checked ||
       $("filter-city").value ||
       $("filter-country").value ||
       intlOnly() ||
@@ -1206,17 +1219,15 @@
   }
 
 
-  var CIS_COUNTRIES = {
-    "Россия": 1, "Беларусь": 1, "Казахстан": 1, "Узбекистан": 1,
-    "Армения": 1, "Азербайджан": 1, "Кыргызстан": 1, "Киргизия": 1,
-    "Молдова": 1, "Молдавия": 1, "Таджикистан": 1, "Туркменистан": 1, "Туркмения": 1
-  };
-
-  function isCisCountry(c) {
-    if (!c || !String(c).trim()) return false; // empty → not in default CIS chip
-    return !!CIS_COUNTRIES[String(c).trim()];
+  function geography(e) {
+    if (!String(e.country || "").trim()) return "unknown";
+    return ["Россия","РФ","RU","Russia","Russian Federation"].includes(e.country) ? "russia" : "abroad";
   }
 
+  function inView(e) {
+    var group = geography(e);
+    return group === "russia" || $(group).open;
+  }
 
   function normalizeType(e) {
     var raw = String((e && e.type) || "").toLowerCase();
@@ -1257,7 +1268,7 @@
 
   function matchesSearch(event, terms) {
     if (!terms.length) return true;
-    var title = normalizeSearch(event.title);
+    var title = normalizeSearch([event.title].concat(event.aliases || []).join(" "));
     return terms.every(function (term) { return title.includes(term); });
   }
 
@@ -1265,7 +1276,7 @@
     return ["it", "apk", "industry"].includes(event.vertical) ? event.vertical : "other";
   }
 
-  function filtered() {
+  function filtered(ignoreVertical) {
     var today = todayISO();
     var terms = searchTerms();
     var city = $("filter-city").value;
@@ -1278,8 +1289,8 @@
 
     return state.events.filter(function (e) {
       if (!e.date || eventEnd(e) < today) return false;
-      if (state.vertical !== "all" && eventVertical(e) !== state.vertical) return false;
-      if (state.region === "cis" && !isCisCountry(e.country)) return false;
+      if (!ignoreVertical && state.vertical !== "all" && eventVertical(e) !== state.vertical) return false;
+      if ($("filter-new").checked && !state.releaseIds.has(e.id)) return false;
       if (city && e.city !== city) return false;
       if (country && e.country !== country) return false;
       // "intl" is the audience field, not the country. Moscow stays in «РФ и СНГ».
@@ -1307,42 +1318,7 @@
     return html;
   }
 
-  function renderList() {
-    var items = filtered();
-    var total = items.length;
-    var limit = state.page * PAGE_SIZE;
-    var visible = items.slice(0, limit);
-
-    if (!total) {
-      $("meta-count").textContent = "Найдено 0";
-      $("meta-hint").textContent = "";
-    } else if (visible.length < total) {
-      $("meta-count").textContent = "Найдено " + total + " · показано " + visible.length;
-      $("meta-hint").textContent = "Листайте вниз или нажмите «Показать ещё» — в счётчике все по фильтрам, на экране порция.";
-    } else {
-      $("meta-count").textContent = "Найдено " + total;
-      $("meta-hint").textContent = "Все найденные на экране";
-    }
-
-    if (intlOnly()) $("meta-hint").textContent = "Отбор по названию, темам, описанию и иностранному участию.";
-    var list = $("event-list");
-    var empty = $("list-empty");
-    var moreWrap = $("list-more-wrap");
-
-    list.innerHTML = "";
-
-    if (!total) {
-      empty.hidden = false;
-      empty.textContent = searchTerms().length ? "Мероприятия не найдены. Проверьте название или измените фильтры." : intlOnly() ? "По выбранным условиям международные мероприятия не найдены. Попробуйте расширить даты или город." : hasActiveFilters()
-        ? "По таким фильтрам список пуст. Расширьте город, тип или даты."
-        : "Пока в каталоге пусто. Нажмите «Обновить» или загляните позже.";
-      moreWrap.hidden = true;
-      return;
-    }
-
-    empty.hidden = true;
-
-    visible.forEach(function (e) {
+  function addRow(list, e) {
       var row = document.createElement("article");
       row.className = "event-row";
       row.tabIndex = 0;
@@ -1354,7 +1330,7 @@
         '<div class="event-row__title">' + escapeHtml(displayTitle(e)) + "</div>" +
         '<div class="event-row__meta">' +
           escapeHtml(e.type || "—") + " · " +
-          escapeHtml((e.city && e.city.trim()) || "Без города") + " · " +
+          escapeHtml([e.city, geography(e) === "abroad" ? e.country : ""].filter(Boolean).join(", ") || "Без города") + " · " +
           escapeHtml(fmtRange(e)) +
         "</div>" +
         (sum
@@ -1367,15 +1343,63 @@
           openDrawer(e);
         }
       });
+      if (e.priorityEvidence) {
+        var note = document.createElement("p");
+        note.className = "scale-note";
+        var link = document.createElement("a");
+        link.href = e.priorityEvidence.url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = e.priorityEvidence.text;
+        link.addEventListener("click", function (ev) { ev.stopPropagation(); });
+        link.addEventListener("keydown", function (ev) { ev.stopPropagation(); });
+        note.appendChild(link);
+        row.appendChild(note);
+      }
       list.appendChild(row);
-    });
+  }
 
-    if (visible.length < total) {
-      moreWrap.hidden = false;
-      $("btn-show-more").textContent = "Показать ещё (" + Math.min(PAGE_SIZE, total - visible.length) + ")";
-    } else {
-      moreWrap.hidden = true;
-    }
+  function resetPages() {
+    state.page = 1;
+    state.geoPages = {abroad: 1, unknown: 1};
+  }
+
+  function renderGroups(items) {
+    ["abroad", "unknown"].forEach(function (group) {
+      var groupItems = items.filter(function (e) { return geography(e) === group; });
+      if (group === "abroad") groupItems.sort(function (a,b) { return Number(!!b.priorityEvidence) - Number(!!a.priorityEvidence); });
+      var highlighted = group === "abroad" && groupItems.filter(function (e) { return e.priorityEvidence; }).length;
+      $(group + "-count").textContent = String(groupItems.length) + (highlighted ? " · в приоритете " + highlighted : "");
+      $(group).hidden = !groupItems.length;
+      var list = $(group + "-list");
+      list.innerHTML = "";
+      var limit = state.geoPages[group] * PAGE_SIZE;
+      $(group + "-more").hidden = state.tab !== "list" || groupItems.length <= limit;
+      if (!$(group).open || state.tab !== "list") return;
+      groupItems.slice(0,limit).forEach(function (e,i) {
+        if (group === "abroad" && (i === 0 || !!groupItems[i-1].priorityEvidence !== !!e.priorityEvidence)) {
+          var heading = document.createElement("h3");
+          heading.textContent = e.priorityEvidence ? "Крупные отраслевые события" : "Все остальные";
+          if (e.priorityEvidence || i > 0) list.appendChild(heading);
+        }
+        addRow(list,e);
+      });
+    });
+  }
+
+  function renderList() {
+    var items = filtered();
+    var domestic = items.filter(function (e) { return geography(e) === "russia"; });
+    var list = $("event-list");
+    list.innerHTML = "";
+    domestic.slice(0,state.page * PAGE_SIZE).forEach(function (e) { addRow(list,e); });
+    $("russia-heading").textContent = "В России · " + domestic.length;
+    $("list-empty").hidden = domestic.length > 0;
+    $("list-empty").textContent = items.length ? "В России по этим условиям мероприятий нет." : "Мероприятия не найдены. Проверьте название или измените фильтры.";
+    $("list-more-wrap").hidden = domestic.length <= state.page * PAGE_SIZE;
+    $("meta-count").textContent = "Найдено " + items.filter(inView).length;
+      $("meta-hint").textContent = "";
+    renderGroups(items);
   }
 
   function renderCalendar() {
@@ -1388,7 +1412,9 @@
     var first = new Date(y, m, 1);
     var startPad = (first.getDay() + 6) % 7;
     var daysInMonth = new Date(y, m + 1, 0).getDate();
-    var items = filtered();
+    var allItems = filtered();
+    renderGroups(allItems);
+    var items = allItems.filter(inView);
     var byDay = {};
     items.forEach(function (e) {
       var p = e.date.split("-").map(Number);
@@ -1462,30 +1488,7 @@
   }
 
   function updateHeaderCount() {
-    // Счётчики вертикалей — в рамках текущего региона (и дат/города/типа, но без чипа вертикали)
-    var today = todayISO();
-    var terms = searchTerms();
-    var city = $("filter-city").value;
-    var country = $("filter-country").value;
-    var onlyIntl = intlOnly();
-    var type = $("filter-type").value;
-    var from = $("filter-from").value;
-    var to = $("filter-to").value;
-    var onlyConfirmed = $("filter-confirmed-only") && $("filter-confirmed-only").checked;
-
-    var scoped = state.events.filter(function (e) {
-      if (!e.date || eventEnd(e) < today) return false;
-      if (state.region === "cis" && !isCisCountry(e.country)) return false;
-      if (city && e.city !== city) return false;
-      if (country && e.country !== country) return false;
-      if (onlyIntl && !isTranslationLead(e)) return false;
-      if (type && e.type !== type) return false;
-      if (from && e.date < from) return false;
-      if (to && e.date > to) return false;
-      if (onlyConfirmed && e.status !== "confirmed") return false;
-      return matchesSearch(e, terms);
-    });
-
+    var scoped = filtered(true).filter(inView);
     var counts = { it: 0, apk: 0, industry: 0, other: 0 };
     scoped.forEach(function (e) {
       counts[eventVertical(e)]++;
@@ -1704,14 +1707,13 @@
 
   function resetFilters() {
     state.vertical = "all";
-    state.region = "cis";
+    $("abroad").open = false;
+    $("unknown").open = false;
+    $("filter-new").checked = false;
     state.page = 1;
     $("filter-search").value = "";
     document.querySelectorAll("#chips-vertical .chip-vertical").forEach(function (b) {
       b.classList.toggle("is-active", b.dataset.vertical === "all");
-    });
-    document.querySelectorAll("#chips-region .chip-region").forEach(function (b) {
-      b.classList.toggle("is-active", b.dataset.region === "cis");
     });
     $("filter-type").value = "";
     $("filter-city").value = "";
@@ -1740,7 +1742,7 @@
   }
 
   function exportExcel() {
-    var rows = filtered();
+    var rows = filtered().filter(inView);
     var headers = ["Название", "Дата начала", "Дата конца", "Город", "Страна", "Аудитория", "Тип", "Вертикаль", "Площадка", "Краткое описание", "Ссылка"];
     function cell(v) {
       var s = String(v == null ? "" : v);
@@ -1795,27 +1797,35 @@
       });
     });
 
-    document.querySelectorAll("#chips-region .chip-region").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        document.querySelectorAll("#chips-region .chip-region").forEach(function (b) {
-          b.classList.remove("is-active");
-        });
-        btn.classList.add("is-active");
-        state.region = btn.dataset.region;
-        state.page = 1;
-        render();
-      });
+    ["abroad","unknown"].forEach(function (group) {
+      $(group).addEventListener("toggle", render);
+      $(group + "-more").addEventListener("click", function () { state.geoPages[group]++; render(); });
     });
-
-    ["filter-city", "filter-country", "filter-intl", "filter-type", "filter-from", "filter-to", "filter-confirmed-only"].forEach(function (id) {
+    ["filter-city", "filter-country", "filter-intl", "filter-type", "filter-from", "filter-to", "filter-confirmed-only", "filter-new"].forEach(function (id) {
       $(id).addEventListener("change", function () {
-        state.page = 1;
+        resetPages();
+        if ((id === "filter-country" || id === "filter-city") && $(id).value) {
+          var selected = filtered();
+          if (!selected.some(function (e) { return geography(e) === "russia"; })) {
+            ["abroad","unknown"].forEach(function (group) {
+              if (selected.some(function (e) { return geography(e) === group; })) $(group).open = true;
+            });
+          }
+        }
         render();
       });
     });
 
     $("filter-search").addEventListener("input", function () {
-      state.page = 1;
+      resetPages();
+      var matches = searchTerms().length ? filtered() : [];
+      ["abroad","unknown"].forEach(function (group) {
+        var el = $(group);
+        var reveal = matches.length && !matches.some(function (e) { return geography(e) === "russia"; })
+          && matches.some(function (e) { return geography(e) === group; });
+        if (reveal && !el.open) { el.open = true; el.dataset.searchOpened = "1"; }
+        if (!reveal && el.dataset.searchOpened) { el.open = false; delete el.dataset.searchOpened; }
+      });
       render();
     });
 
@@ -1917,6 +1927,16 @@
     populateFilters();
     bind();
     render();
+    var release = new URLSearchParams(location.search).get("release");
+    var key = release && /^[a-f0-9]{12}$/.test(release) ? release : "latest";
+    fetch("./releases/" + key + ".json", {cache:"no-cache"}).then(function (r) {
+      if (!r.ok) throw Error();
+      return r.json();
+    }).then(function (data) {
+      state.releaseIds = new Set(data.ids);
+      $("filter-new").disabled = false;
+      if (release) { $("filter-new").checked = true; render(); }
+    }).catch(function () { if (release) showToast("Не удалось загрузить выпуск", true); });
   }
 
   if (document.readyState === "loading") {

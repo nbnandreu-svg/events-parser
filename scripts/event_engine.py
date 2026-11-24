@@ -1825,6 +1825,26 @@ async def parse_source(client: httpx.AsyncClient, source: dict[str, Any]) -> tup
             return items, result
 
         urls = [source["url"], *[u for u in (source.get("extra_urls") or []) if u]]
+        if source_type == 'wordpress_events':
+            from catalog_core import today
+            from urllib.parse import urlsplit
+            urls = []
+            page_number = 1
+            while True:
+                response = await client.get(source['url'], params={'categories':12, 'per_page':100,
+                    'page':page_number, '_fields':'link,title'}, follow_redirects=True)
+                response.raise_for_status()
+                for post in response.json():
+                    link = post.get('link', '')
+                    if urlsplit(link).hostname != 'seymartec.ru':
+                        continue
+                    years = re.findall(r'\b20\d{2}\b', link + ' ' + post['title']['rendered'])
+                    if not years or max(map(int, years)) >= today().year:
+                        urls.append(link)
+                if page_number >= int(response.headers.get('X-WP-TotalPages', 1)):
+                    break
+                page_number += 1
+            source_type = 'html'
         if source['id']=='crocus_expo':
             from catalog_core import today as local_today
             now=local_today()

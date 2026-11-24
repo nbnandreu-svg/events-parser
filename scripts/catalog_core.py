@@ -51,6 +51,13 @@ def title_key(value):
 
 def title_match(a, b):
     raw_a,raw_b=clean(a),clean(b)
+    if re.match(r'(сеймартек|seymartec)\s',raw_a,re.I) and re.match(r'(сеймартек|seymartec)\s',raw_b,re.I):
+        def brand(raw):
+            prefix = title_key(raw.split('.')[0])
+            words = {'сеймартек':'seymartec','энерджи':'energy','майнинг':'mining','диджитал':'digital','тоир':'mro'}
+            return [words.get(word,word) for word in prefix.split()]
+        if brand(raw_a) == brand(raw_b):
+            return True
     def labels(raw):
         vals=[title_key(raw)]
         if '|' in raw:vals.append(title_key(raw.split('|',1)[0]))
@@ -226,11 +233,23 @@ def stable_id(event):
     return 'ev-'+hashlib.sha256(identity.encode()).hexdigest()[:16]
 
 def prepare_catalog(events):
+    policy = json.loads((ROOT/'editorial_events.json').read_text(encoding='utf-8'))
+    highlights = {entry['id']:entry for entry in policy['featured'] if entry['country'] in policy['priority_countries']}
+    corrections = {identifier:entry for entry in policy['corrections'] for identifier in entry['ids'] if canonical_url(entry['url']).startswith('https://')}
     groups={}
     out=[]
     removed=[]
     for raw in events:
         e=dict(raw)
+        original_id = e.get('id') or stable_id(e)
+        correction = corrections.get(original_id)
+        if correction and e.get('starts_at') in (correction['original_date'], correction.get('starts_at')):
+            if correction['status'] == 'cancelled':
+                removed.append({'reason':'cancelled','event':e})
+                continue
+            if correction['status'] == 'rescheduled':
+                e.update(id=original_id, starts_at=correction['starts_at'], ends_at=correction['ends_at'],
+                         date_status='confirmed', date_evidence=correction['url'])
         try:
             start=date.fromisoformat(e.get('starts_at','')[:10]);end=date.fromisoformat((e.get('ends_at') or e['starts_at'])[:10])
         except (ValueError,TypeError,KeyError):
@@ -269,6 +288,7 @@ def prepare_catalog(events):
         candidates=groups.setdefault(e['starts_at'],[])
         existing=next((x for x in candidates if same_edition(x,e)),None)
         if existing is not None:
+            existing['aliases'] = list(dict.fromkeys([*existing.get('aliases',[]), e['title'], *e.get('aliases',[])]))
             # Keep every source and its evidence. Never borrow across dates/editions.
             for key in ('source_urls','sources'):
                 existing[key]=list(dict.fromkeys(existing.get(key,[])+e.get(key,[])))
@@ -303,11 +323,19 @@ def prepare_catalog(events):
             identity=json.dumps([e['title'],e['starts_at'],e['ends_at'],e.get('city'),e.get('country'),e.get('organizer_url')],ensure_ascii=False)
             key='ev-'+hashlib.sha256(identity.encode()).hexdigest()[:20]
         e['id']=key;used_ids.add(key)
+        highlight = highlights.get(key)
+        e.pop('priority_evidence',None)
+        if highlight and e.get('country') == highlight['country'] and e['starts_at'] == highlight['starts_at']:
+            e['priority_evidence'] = {k:highlight[k] for k in ('url','text')}
+            e['vertical'] = highlight['vertical']
     out.sort(key=lambda x:(x['starts_at'],x['title']))
     return out,removed
 
 def to_browser(e):
-    return dict(id=e['id'],title=e['title'],vertical=e.get('vertical') or 'industry',type=e.get('type') or 'Мероприятие',
+    extra = {}
+    if e.get('aliases'):extra['aliases'] = e['aliases']
+    if e.get('priority_evidence'):extra['priorityEvidence'] = e['priority_evidence']
+    return dict(**extra,id=e['id'],title=e['title'],vertical=e.get('vertical') or 'industry',type=e.get('type') or 'Мероприятие',
         city=e.get('city',''),country=e.get('country',''),audience=e.get('audience','unknown'),date=e['starts_at'],endDate=e['ends_at'],
         status=e.get('date_status','confirmed'),url=e.get('organizer_url',''),place=e.get('city',''),summary=e.get('description',''),
         source=e.get('source',''),sources=e.get('sources',[]),translationStatus=e.get('translation_status','unknown'),
