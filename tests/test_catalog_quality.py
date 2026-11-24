@@ -83,6 +83,15 @@ class CatalogTests(unittest.TestCase):
         self.assertNotIn('<',s);self.assertLessEqual(len(s),460);self.assertTrue(s.endswith('.'))
 
 class DetailTests(unittest.TestCase):
+    def test_ict2go_uses_event_body_for_description(self):
+        body = 'Специалисты обсудят способы защиты корпоративных сетей на практических примерах.'
+        raw = '<h1>IT Security Day 2026</h1><main><div class="addeventatc"><div class="description"><p>' + body + '</p></div></div></main>'
+        self.assertEqual(extract_facts(raw, 'https://ict2go.ru/events/123', event())['description'], body)
+
+    def test_legacy_description_decoding(self):
+        body = 'Выставка знакомит специалистов с оборудованием для пищевых производств.'
+        self.assertEqual(short_summary(body.encode('cp1251').decode('latin1')), body)
+
     def test_speaker_name_is_not_city(self):
         raw='''<title>IT Security Day 2026</title><h1>IT Security Day 2026</h1>
         <div class="conference__date">6 октября, 2026</div>

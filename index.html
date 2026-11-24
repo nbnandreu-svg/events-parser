@@ -413,13 +413,7 @@
   .panel.is-active { display: block; }
 
   /* EventRow — real product cards */
-  #geography { display: grid; gap: .4rem; margin: 0 0 1rem; }
-  #geography summary { cursor: pointer; padding: .7rem 0; font-weight: 600; }
-  #geography summary span { color: var(--muted); margin-left: .4rem; }
-  #geography details[open] { border-bottom: 1px solid #dce2ef; padding-bottom: .7rem; }
-  #geography h3, #russia-heading { margin: .65rem 0; }
-  #geography .scale-note { margin: .35rem 0 0; font-size: .87rem; }
-  #event-list, .geo-list {
+  #event-list {
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -829,7 +823,7 @@
   }
 </style>
 
-<script src="./events-data.js?v=20261124-geo"></script>
+<script src="./events-data.js?v=20261124-summary"></script>
 </head>
 <body>
   <div class="app">
@@ -918,18 +912,7 @@
       <div id="meta-hint"></div>
     </div>
 
-    <div id="geography">
-      <details id="abroad"><summary>За рубежом <span id="abroad-count"></span></summary>
-        <div id="abroad-list" class="geo-list"></div>
-        <button type="button" class="btn btn-ghost" id="abroad-more" hidden>Показать еще</button>
-      </details>
-      <details id="unknown"><summary>Страна уточняется <span id="unknown-count"></span></summary>
-        <div id="unknown-list" class="geo-list"></div>
-        <button type="button" class="btn btn-ghost" id="unknown-more" hidden>Показать еще</button>
-      </details>
-    </div>
     <section id="panel-list" class="panel is-active" role="tabpanel" aria-labelledby="tab-list">
-      <h2 id="russia-heading">В России</h2>
       <div id="event-list"></div>
       <div id="list-empty" class="empty-state" hidden></div>
       <div id="list-more-wrap" hidden>
@@ -1001,7 +984,6 @@
   var state = {
     events: [],
     vertical: "all",
-    geoPages: {abroad: 1, unknown: 1},
     releaseIds: new Set(),
     enrichAvailable: /^(localhost|127\.0\.0\.1)$/.test(location.hostname),
     activeEventId: null,
@@ -1126,7 +1108,6 @@
     return best;
   }
 
-  var EMPTY_SUMMARY = "Краткого описания пока нет. Откройте сайт организатора.";
   var LOADING_SUMMARY = "Загружаю описание…";
 
   function whereLine(e) {
@@ -1197,9 +1178,13 @@
     else selectEl.value = "";
   }
 
+  function countryLabel(event) {
+    return (event.country || "").trim() || "Страна уточняется";
+  }
+
   function populateFilters() {
     fillSelect($("filter-city"), uniqueSorted(state.events.map(function (e) { return e.city; })), "Все города");
-    fillSelect($("filter-country"), uniqueSorted(state.events.map(function (e) { return e.country; })), "Все страны");
+    fillSelect($("filter-country"), uniqueSorted(state.events.map(countryLabel)), "Все страны");
     fillSelect($("filter-type"), sortedTypes(state.events.map(function (e) { return e.type; })), "Все типы");
   }
 
@@ -1218,16 +1203,6 @@
     );
   }
 
-
-  function geography(e) {
-    if (!String(e.country || "").trim()) return "unknown";
-    return ["Россия","РФ","RU","Russia","Russian Federation"].includes(e.country) ? "russia" : "abroad";
-  }
-
-  function inView(e) {
-    var group = geography(e);
-    return group === "russia" || $(group).open;
-  }
 
   function normalizeType(e) {
     var raw = String((e && e.type) || "").toLowerCase();
@@ -1292,7 +1267,7 @@
       if (!ignoreVertical && state.vertical !== "all" && eventVertical(e) !== state.vertical) return false;
       if ($("filter-new").checked && !state.releaseIds.has(e.id)) return false;
       if (city && e.city !== city) return false;
-      if (country && e.country !== country) return false;
+      if (country && countryLabel(e) !== country) return false;
       // "intl" is the audience field, not the country. Moscow stays in «РФ и СНГ».
       if (onlyIntl && !isTranslationLead(e)) return false;
       if (type && e.type !== type) return false;
@@ -1330,7 +1305,7 @@
         '<div class="event-row__title">' + escapeHtml(displayTitle(e)) + "</div>" +
         '<div class="event-row__meta">' +
           escapeHtml(e.type || "—") + " · " +
-          escapeHtml([e.city, geography(e) === "abroad" ? e.country : ""].filter(Boolean).join(", ") || "Без города") + " · " +
+          escapeHtml([e.city, e.country].filter(Boolean).join(", ") || "Без города") + " · " +
           escapeHtml(fmtRange(e)) +
         "</div>" +
         (sum
@@ -1343,63 +1318,20 @@
           openDrawer(e);
         }
       });
-      if (e.priorityEvidence) {
-        var note = document.createElement("p");
-        note.className = "scale-note";
-        var link = document.createElement("a");
-        link.href = e.priorityEvidence.url;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        link.textContent = e.priorityEvidence.text;
-        link.addEventListener("click", function (ev) { ev.stopPropagation(); });
-        link.addEventListener("keydown", function (ev) { ev.stopPropagation(); });
-        note.appendChild(link);
-        row.appendChild(note);
-      }
       list.appendChild(row);
-  }
-
-  function resetPages() {
-    state.page = 1;
-    state.geoPages = {abroad: 1, unknown: 1};
-  }
-
-  function renderGroups(items) {
-    ["abroad", "unknown"].forEach(function (group) {
-      var groupItems = items.filter(function (e) { return geography(e) === group; });
-      if (group === "abroad") groupItems.sort(function (a,b) { return Number(!!b.priorityEvidence) - Number(!!a.priorityEvidence); });
-      var highlighted = group === "abroad" && groupItems.filter(function (e) { return e.priorityEvidence; }).length;
-      $(group + "-count").textContent = String(groupItems.length) + (highlighted ? " · в приоритете " + highlighted : "");
-      $(group).hidden = !groupItems.length;
-      var list = $(group + "-list");
-      list.innerHTML = "";
-      var limit = state.geoPages[group] * PAGE_SIZE;
-      $(group + "-more").hidden = state.tab !== "list" || groupItems.length <= limit;
-      if (!$(group).open || state.tab !== "list") return;
-      groupItems.slice(0,limit).forEach(function (e,i) {
-        if (group === "abroad" && (i === 0 || !!groupItems[i-1].priorityEvidence !== !!e.priorityEvidence)) {
-          var heading = document.createElement("h3");
-          heading.textContent = e.priorityEvidence ? "Крупные отраслевые события" : "Все остальные";
-          if (e.priorityEvidence || i > 0) list.appendChild(heading);
-        }
-        addRow(list,e);
-      });
-    });
   }
 
   function renderList() {
     var items = filtered();
-    var domestic = items.filter(function (e) { return geography(e) === "russia"; });
     var list = $("event-list");
+    var limit = state.page * PAGE_SIZE;
     list.innerHTML = "";
-    domestic.slice(0,state.page * PAGE_SIZE).forEach(function (e) { addRow(list,e); });
-    $("russia-heading").textContent = "В России · " + domestic.length;
-    $("list-empty").hidden = domestic.length > 0;
-    $("list-empty").textContent = items.length ? "В России по этим условиям мероприятий нет." : "Мероприятия не найдены. Проверьте название или измените фильтры.";
-    $("list-more-wrap").hidden = domestic.length <= state.page * PAGE_SIZE;
-    $("meta-count").textContent = "Найдено " + items.filter(inView).length;
-      $("meta-hint").textContent = "";
-    renderGroups(items);
+    items.slice(0, limit).forEach(function (e) { addRow(list, e); });
+    $("list-empty").hidden = items.length > 0;
+    $("list-empty").textContent = "Мероприятия не найдены. Проверьте название или измените фильтры.";
+    $("list-more-wrap").hidden = items.length <= limit;
+    $("meta-count").textContent = "Найдено " + items.length;
+    $("meta-hint").textContent = "";
   }
 
   function renderCalendar() {
@@ -1412,9 +1344,7 @@
     var first = new Date(y, m, 1);
     var startPad = (first.getDay() + 6) % 7;
     var daysInMonth = new Date(y, m + 1, 0).getDate();
-    var allItems = filtered();
-    renderGroups(allItems);
-    var items = allItems.filter(inView);
+    var items = filtered();
     var byDay = {};
     items.forEach(function (e) {
       var p = e.date.split("-").map(Number);
@@ -1488,7 +1418,7 @@
   }
 
   function updateHeaderCount() {
-    var scoped = filtered(true).filter(inView);
+    var scoped = filtered(true);
     var counts = { it: 0, apk: 0, industry: 0, other: 0 };
     scoped.forEach(function (e) {
       counts[eventVertical(e)]++;
@@ -1539,7 +1469,8 @@
       e._enrichFailed = true;
       block.classList.remove("is-loading");
       block.classList.add("is-empty");
-      textEl.textContent = EMPTY_SUMMARY;
+      block.hidden = true;
+      textEl.textContent = "";
       return;
     }
     if (e._enrichPromise) return;
@@ -1566,7 +1497,8 @@
         e._enrichPromise = null;
         block.classList.remove("is-loading");
         block.classList.add("is-empty");
-        textEl.textContent = EMPTY_SUMMARY;
+        block.hidden = true;
+        textEl.textContent = "";
         textEl.classList.remove("is-clamped");
         moreBtn.hidden = true;
         return;
@@ -1586,7 +1518,8 @@
         e._enrichPromise = null;
         block.classList.remove("is-loading");
         block.classList.add("is-empty");
-        textEl.textContent = EMPTY_SUMMARY;
+        block.hidden = true;
+        textEl.textContent = "";
         textEl.classList.remove("is-clamped");
         moreBtn.hidden = true;
       }
@@ -1597,7 +1530,8 @@
       e._enrichPromise = null;
       block.classList.remove("is-loading");
       block.classList.add("is-empty");
-      textEl.textContent = EMPTY_SUMMARY;
+      block.hidden = true;
+      textEl.textContent = "";
       textEl.classList.remove("is-clamped");
       moreBtn.hidden = true;
       // не трогаем state.enrichAvailable здесь — иначе один fail убивает enrich для всех
@@ -1636,6 +1570,7 @@
     var moreBtn = $("btn-sutevka-more");
     var sum = eventSummary(e);
     var real = isRealSummary(sum, e.title);
+    block.hidden = false;
     block.classList.remove("is-loading");
     if (real) {
       block.classList.remove("is-empty", "is-loading");
@@ -1651,7 +1586,8 @@
       }
     } else if (e._enrichFailed || !state.enrichAvailable) {
       block.classList.add("is-empty");
-      textEl.textContent = EMPTY_SUMMARY;
+      block.hidden = true;
+      textEl.textContent = "";
       textEl.classList.remove("is-clamped");
       moreBtn.hidden = true;
     } else {
@@ -1707,8 +1643,6 @@
 
   function resetFilters() {
     state.vertical = "all";
-    $("abroad").open = false;
-    $("unknown").open = false;
     $("filter-new").checked = false;
     state.page = 1;
     $("filter-search").value = "";
@@ -1742,7 +1676,7 @@
   }
 
   function exportExcel() {
-    var rows = filtered().filter(inView);
+    var rows = filtered();
     var headers = ["Название", "Дата начала", "Дата конца", "Город", "Страна", "Аудитория", "Тип", "Вертикаль", "Площадка", "Краткое описание", "Ссылка"];
     function cell(v) {
       var s = String(v == null ? "" : v);
@@ -1797,35 +1731,15 @@
       });
     });
 
-    ["abroad","unknown"].forEach(function (group) {
-      $(group).addEventListener("toggle", render);
-      $(group + "-more").addEventListener("click", function () { state.geoPages[group]++; render(); });
-    });
     ["filter-city", "filter-country", "filter-intl", "filter-type", "filter-from", "filter-to", "filter-confirmed-only", "filter-new"].forEach(function (id) {
       $(id).addEventListener("change", function () {
-        resetPages();
-        if ((id === "filter-country" || id === "filter-city") && $(id).value) {
-          var selected = filtered();
-          if (!selected.some(function (e) { return geography(e) === "russia"; })) {
-            ["abroad","unknown"].forEach(function (group) {
-              if (selected.some(function (e) { return geography(e) === group; })) $(group).open = true;
-            });
-          }
-        }
+        state.page = 1;
         render();
       });
     });
 
     $("filter-search").addEventListener("input", function () {
-      resetPages();
-      var matches = searchTerms().length ? filtered() : [];
-      ["abroad","unknown"].forEach(function (group) {
-        var el = $(group);
-        var reveal = matches.length && !matches.some(function (e) { return geography(e) === "russia"; })
-          && matches.some(function (e) { return geography(e) === group; });
-        if (reveal && !el.open) { el.open = true; el.dataset.searchOpened = "1"; }
-        if (!reveal && el.dataset.searchOpened) { el.open = false; delete el.dataset.searchOpened; }
-      });
+      state.page = 1;
       render();
     });
 

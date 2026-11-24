@@ -109,6 +109,14 @@ def same_edition(a, b):
 
 def short_summary(value, title='', limit=460):
     text=clean(value)
+    if re.search(r'Âûñòàâê|Êîíôåðåíö|Ìåæäóíàðîä', text):
+        # Some legacy Russian pages were originally stored as Western text.
+        for encoding in ('cp1252', 'latin1'):
+            try:
+                text = text.encode(encoding).decode('cp1251')
+                break
+            except UnicodeError:
+                continue
     if re.search(r'transition-(?:property|timing)|(?:font-size|background-color|border-color)\s*:|@media\s*\(|function\s*\(',text,re.I):return ''
     if re.match(r'^Новости\b',text,re.I):return ''
     if re.match(r'^(?:Конференция|Вебинар|Форум|Семинар)\s',text,re.I) and len(text)<180 and not re.search(r'посвящ|обсуд|пройдет|разбер|состо|представ|узна|собер|объедин',text,re.I):return ''

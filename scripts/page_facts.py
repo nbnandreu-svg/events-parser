@@ -140,6 +140,28 @@ def extract_facts(html,url,event):
     if wrong_year and year not in wrong_year.groups():
         text=''
     description=short_summary(text,expected)
+    # Listings sometimes put the venue and registration boilerplate in their
+    # metadata while the event programme is in a dedicated body on the page.
+    body_selectors = {
+        'ict2go.ru': '.addeventatc .description p',
+        'kudabiz.ru': '.event-desc p',
+        'workevent.ru': '.event-about .prose p',
+        'confec.ru': 'article .prose p, main .prose p',
+        'expoafisha.ru': '.e-more-body p',
+    }
+    selector = body_selectors.get(host.removeprefix('www.'))
+    if selector:
+        for paragraph in soup.select(selector):
+            value = clean(paragraph.get_text(' ',strip=True))
+            if re.search(r'^(?:даты карточки|регистрация|подписывайтесь|источник показателей)',value,re.I):
+                continue
+            years = re.findall(r'\b(20\d{2})\s*(?:года|г\.)',value[:100])
+            if years and year not in years:
+                continue
+            candidate = short_summary(value,expected)
+            if candidate and not re.match(r'^\d{1,2}\s+\w+\s+20\d{2}',candidate):
+                description = candidate
+                break
     location='';country=''
     if schema:
         loc=schema.get('location') or {}
