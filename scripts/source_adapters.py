@@ -1,4 +1,5 @@
 """Source-specific list readers; importing this file makes no network calls."""
+import json
 import re
 from datetime import datetime
 from urllib.parse import urljoin
@@ -48,9 +49,86 @@ def expoafisha_cards(source, soup):
         rows.append(row)
     return rows
 
+def jugru_conferences(source, soup):
+    from event_engine import make_item, parse_date
+
+    payload = soup.select_one('script#__NEXT_DATA__')
+    if not payload:
+        return []
+    page = json.loads(payload.get_text())['props']['pageProps']
+    rows = []
+    for season in [page.get('currentSeason') or {}, *(page.get('futureSeasons') or [])]:
+        for conference in season.get('conferences', []):
+            version = conference.get('version') or {}
+            dates = version.get('dates') or {}
+            start = parse_date(dates.get('startDate'))
+            end = parse_date(dates.get('endDate')) or start
+            title = (version.get('title') or {}).get('ru')
+            url = (version.get('url') or {}).get('ru')
+            if not (title and url and start and end >= start):
+                continue
+            place = ((version.get('venue') or {}).get('ru') or {}).get('city', '')
+            formats = {p.get('type') for p in version.get('periods', [])}
+            if not place and formats == {'online'}:
+                place = 'Онлайн'
+            rows.append(make_item(source=source, title=title, url=url, published_at=start,
+                                  date_end=end, location=place, event_type='конференция',
+                                  summary=(version.get('description') or {}).get('ru', ''),
+                                  date_evidence=f'{start.date()} — {end.date()}'))
+    return rows
+
+
+def ite_exhibitions(source, soup):
+    from event_engine import extract_event_dates, make_item
+
+    rows = []
+    seen = set()
+    for title in soup.select('p.line-clamp-2.text-t1'):
+        card = title.find_parent('div', class_='rounded-2xl')
+        if not card:
+            continue
+        label = card.find('p', string='Даты')
+        link = card.select_one('a[href^="https://"]')
+        if not label or not link:
+            continue
+        raw = label.parent.get_text(' ', strip=True).replace('/', ' ')
+        if not re.search(r'\b20\d{2}\b', raw):
+            continue
+        start, end = extract_event_dates(' '.join(raw.split()))
+        if not start or (link['href'], start) in seen:
+            continue
+        seen.add((link['href'], start))
+        city = label.parent.parent.find_next_sibling('div')
+        city_label = city.select_one('p') if city else None
+        description = title.find_next_sibling('p')
+        rows.append(make_item(source=source, title=title.get_text(' ', strip=True),
+                              url=link['href'], published_at=start, date_end=end,
+                              location=city_label.get_text(strip=True) if city_label else '',
+                              summary=description.get_text(' ', strip=True) if description else '',
+                              event_type='выставка', date_evidence=raw))
+    return rows
+
+
 def parse_special(source,soup):
     from event_engine import clean_text, make_item, extract_event_dates
     sid=source['id']
+    if sid == 'jugru_official':
+        return jugru_conferences(source, soup)
+    if sid == 'ite_group_official':
+        return ite_exhibitions(source, soup)
+    if sid == 'agravia':
+        from event_engine import guess_location
+        for node in soup.select('.t396__artboard .tn-atom'):
+            raw = node.get_text(' ', strip=True)
+            if not re.fullmatch(r'\d{1,2}(?:\s*[-–—]\s*\d{1,2})?\s+[а-яА-Я]+\s+20\d{2}', raw):
+                continue
+            board = node.find_parent(class_='t396__artboard').get_text(' ', strip=True)
+            start, end = extract_event_dates(raw.lower())
+            if start and 'AGRAVIA' in board.upper():
+                return [make_item(source=source, title=f'AGRAVIA {start.year}', url=source['url'],
+                                  published_at=start, date_end=end, location=guess_location(board),
+                                  event_type='выставка', date_evidence=raw)]
+        return []
     if sid=='bioprom_official':
         # The organiser publishes the event date in a Tilda hero, outside H1.
         for node in soup.select('strong,.tn-atom'):

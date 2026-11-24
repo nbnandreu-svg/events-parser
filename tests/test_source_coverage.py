@@ -21,6 +21,33 @@ def source(sid,**kw):
 
 
 class CoverageTests(unittest.TestCase):
+    def test_ite_repeated_show_and_next_year(self):
+        card = '''<div class="rounded-2xl"><p class="line-clamp-2 text-t1">DairyTech</p>
+            <p>Оборудование для молочной промышленности</p><div><div><p>Даты</p>
+            <div>26 - 28 / Января / 2027</div></div></div><div><p>Москва</p></div>
+            <a href="https://dairy.example/">Сайт DairyTech</a></div>'''
+        row, = parse_special(source('ite_group_official'), BeautifulSoup(card * 2, 'lxml'))
+        self.assertEqual((row.published_at.day, row.date_end.day, row.date_end.year), (26, 28, 2027))
+        self.assertEqual(row.location, 'Москва')
+
+    def test_jugru_future_season_excludes_archive(self):
+        version = {'title': {'ru': 'IT Conf'}, 'url': {'ru': 'https://it.example/'},
+                   'dates': {'startDate': '2027-02-01', 'endDate': '2027-02-03'},
+                   'periods': [{'type': 'online'}]}
+        season = {'conferences': [{'version': version}]}
+        page = {'props': {'pageProps': {'currentSeason': None, 'pastSeasons': [season],
+                                        'futureSeasons': [season]}}}
+        html = '<script id="__NEXT_DATA__">' + json.dumps(page) + '</script>'
+        row, = parse_special(source('jugru_official'), BeautifulSoup(html, 'lxml'))
+        self.assertEqual(row.date_end.date().isoformat(), '2027-02-03')
+        self.assertEqual(row.location, 'Онлайн')
+
+    def test_agravia_reads_edition_from_hero(self):
+        html = '''<title>AGRAVIA 2026</title><div class="t396__artboard">AGRAVIA Москва
+                  <div class="tn-atom">20 - 22 ЯНВАРЯ 2027</div></div>'''
+        row, = parse_special(source('agravia'), BeautifulSoup(html, 'lxml'))
+        self.assertEqual((row.title, row.date_end.date().isoformat()), ('AGRAVIA 2027', '2027-01-22'))
+
     def test_expoafisha_visible_dates_use_section_year(self):
         html = '''<section class="kl-grp"><h2>Декабрь 2027</h2><div class="ev">
                   <h3><a href="/events/test">Тестовая выставка</a></h3>

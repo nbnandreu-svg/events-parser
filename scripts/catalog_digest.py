@@ -1,0 +1,85 @@
+"""List new, still relevant editions between two published catalog revisions."""
+import argparse
+from collections import defaultdict
+from datetime import date
+import json
+import re
+import subprocess
+
+from catalog_core import ROOT, canonical_url, is_hub, same_edition, title_key, today
+
+
+TOPICS = ('it', 'apk', 'industry')
+
+
+def snapshot(revision):
+    commit = subprocess.check_output(
+        ['git', 'rev-parse', '--verify', '--end-of-options', revision + '^{commit}'],
+        cwd=ROOT, text=True,
+    ).strip()
+    raw = subprocess.check_output(['git', 'show', f'{commit}:events_upcoming.json'], cwd=ROOT)
+    return json.loads(raw)
+
+
+def edition_links(row):
+    return {canonical_url(url) for url in [row.get('organizer_url'), *(row.get('source_urls') or [])]
+            if url and not is_hub(url)}
+
+
+def listing_variant(left, right):
+    if same_edition(left, right):
+        return True
+    if left.get('country') and right.get('country') and left['country'] != right['country']:
+        return False
+    cities = [r.get('city', '').casefold().strip() for r in (left, right)]
+    if all(cities) and cities[0] != cities[1] and 'онлайн' not in cities and not any(
+            re.search(r'\d|,|\b(?:ул|проспект|улица)\b', city) for city in cities):
+        return False
+    a, b = sorted((title_key(r['title']) for r in (left, right)), key=len)
+    return a == b or (len(a) >= 8 and (b.startswith(a + ' ') or b.endswith(' ' + a)))
+
+
+def additions(previous, current, topics=TOPICS, as_of=None):
+    cutoff = (as_of or today()).isoformat()
+    ids = set()
+    by_date = defaultdict(list)
+    by_link = defaultdict(list)
+
+    def remember(row):
+        if row.get('id'):
+            ids.add(row['id'])
+        by_date[row['starts_at']].append(row)
+        for link in edition_links(row):
+            by_link[link].append(row)
+
+    for row in previous:
+        remember(row)
+    current_ids = {row['id'] for row in current if row.get('id')}
+    result = []
+    for row in sorted(current, key=lambda r: (r['starts_at'], r['title'])):
+        if row.get('vertical') not in topics or row['ends_at'] < cutoff:
+            continue
+        if row.get('id') in ids or any(listing_variant(old, row) for old in by_date[row['starts_at']]):
+            continue
+        # Stable dedicated event links also identify a short postponement.
+        # Annual editions often reuse the same site, so keep distant dates distinct.
+        start = date.fromisoformat(row['starts_at'])
+        if any(old.get('id') not in current_ids
+               and title_key(old['title']) == title_key(row['title'])
+               and abs((start - date.fromisoformat(old['starts_at'])).days) <= 35
+               for link in edition_links(row) for old in by_link[link]):
+            continue
+        result.append({key: row.get(key, '') for key in (
+            'id', 'vertical', 'title', 'starts_at', 'ends_at', 'city', 'date_status', 'organizer_url')})
+        remember(row)
+    return result
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--since', required=True)
+    parser.add_argument('--until', default='HEAD')
+    parser.add_argument('--topics', choices=TOPICS, nargs='+', default=TOPICS)
+    args = parser.parse_args()
+    print(json.dumps(additions(snapshot(args.since), snapshot(args.until), args.topics),
+                     indent=2, ensure_ascii=False))

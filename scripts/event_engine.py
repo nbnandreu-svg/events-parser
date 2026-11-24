@@ -312,6 +312,9 @@ TOPIC_APK_HINTS = (
     "interfood",
 )
 TOPIC_INDUSTRY_HINTS = (
+    "фармацевтического производства",
+    "решений для отопления",
+    "холодоснабжения",
     "металлообработ",
     "металлург",
     "нефтегаз",
@@ -358,6 +361,7 @@ TOPIC_INDUSTRY_HINTS = (
 )
 MIXED_CALENDARS = {"crocus_expo", "exponet_all", "expoforum_spb"}
 IT_PORTALS = {
+    "jugru_official",
     "conferos",
     "cnews_conferences",
     "comnews_conferences",

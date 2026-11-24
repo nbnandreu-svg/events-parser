@@ -393,7 +393,8 @@ sources:
   name: Агравия
   type: html
   kind: event
-  url: https://agravia.org/
+  url: https://agros-expo.com/
+  topic: apk
   category: мероприятие
   region: РФ
   enabled: true
@@ -847,3 +848,21 @@ sources:
   url: https://confec.ru/tag/it
   pagination: true
   max_pages: 100
+- id: jugru_official
+  name: JUG Ru Group
+  url: https://jugru.org/
+  type: html
+  kind: event
+  topic: it
+  region: РФ
+  enabled: true
+  fallback_links: false
+- id: ite_group_official
+  name: ITE Group
+  url: https://ite.group/ru/events/
+  type: html
+  kind: event
+  topic: mixed
+  region: РФ
+  enabled: true
+  fallback_links: false

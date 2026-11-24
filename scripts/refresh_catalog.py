@@ -46,7 +46,10 @@ def merge_live(existing,incoming):
             old['organizer_url']=item['organizer_url']
         for key in ('date_evidence','source_checked_at','parent_event_url'):
             if item.get(key):old[key]=item[key]
-        if item.get('vertical') and item.get('source') in {'ict2go','conferos','tadviser_calendar','ict_moscow','cnews_conferences','comnews_conferences'}:
+        if item.get('vertical') in {'it', 'apk', 'industry'} and item.get('source') in {
+            'ict2go', 'conferos', 'tadviser_calendar', 'ict_moscow', 'cnews_conferences',
+            'comnews_conferences', 'jugru_official', 'ite_group_official', 'agravia',
+        }:
             old['vertical']=item['vertical']
         if item.get('description') and (item.get('description_checked_at') or not old.get('description')):old['description']=item['description']
         for key in ('description_source','description_checked_at','language_evidence'):
