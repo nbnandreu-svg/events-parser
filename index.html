@@ -850,8 +850,8 @@
                placeholder="Поиск по названию мероприятия" autocomplete="off" />
       </label>
 
-      <div class="filter-row" id="chips-vertical" role="group" aria-label="Вертикаль">
-        <span class="filter-label">Вертикаль</span>
+      <div class="filter-row" id="chips-vertical" role="group" aria-label="Отрасли: можно выбрать несколько">
+        <span class="filter-label">Отрасли</span>
         <button type="button" class="chip-vertical is-active" data-vertical="all" id="chip-all">Все <span class="chip-count" id="chip-count-all">0</span></button>
         <button type="button" class="chip-vertical" data-vertical="it" id="chip-it">IT <span class="chip-count" id="chip-count-it">0</span></button>
         <button type="button" class="chip-vertical" data-vertical="apk" id="chip-apk">АПК <span class="chip-count" id="chip-count-apk">0</span></button>
@@ -983,7 +983,7 @@
 
   var state = {
     events: [],
-    vertical: "all",
+    verticals: new Set(),
     releaseIds: new Set(),
     enrichAvailable: /^(localhost|127\.0\.0\.1)$/.test(location.hostname),
     activeEventId: null,
@@ -1191,7 +1191,7 @@
   function hasActiveFilters() {
     return (
       searchTerms().length > 0 ||
-      state.vertical !== "all" ||
+      state.verticals.size > 0 ||
       $("filter-new").checked ||
       $("filter-city").value ||
       $("filter-country").value ||
@@ -1264,7 +1264,7 @@
 
     return state.events.filter(function (e) {
       if (!e.date || eventEnd(e) < today) return false;
-      if (!ignoreVertical && state.vertical !== "all" && eventVertical(e) !== state.vertical) return false;
+      if (!ignoreVertical && state.verticals.size && !state.verticals.has(eventVertical(e))) return false;
       if ($("filter-new").checked && !state.releaseIds.has(e.id)) return false;
       if (city && e.city !== city) return false;
       if (country && countryLabel(e) !== country) return false;
@@ -1641,14 +1641,21 @@
     }, 3200);
   }
 
+  function syncVerticalButtons() {
+    document.querySelectorAll("#chips-vertical .chip-vertical").forEach(function (button) {
+      var vertical = button.dataset.vertical;
+      var selected = vertical === "all" ? state.verticals.size === 0 : state.verticals.has(vertical);
+      button.classList.toggle("is-active", selected);
+      button.setAttribute("aria-pressed", String(selected));
+    });
+  }
+
   function resetFilters() {
-    state.vertical = "all";
+    state.verticals.clear();
     $("filter-new").checked = false;
     state.page = 1;
     $("filter-search").value = "";
-    document.querySelectorAll("#chips-vertical .chip-vertical").forEach(function (b) {
-      b.classList.toggle("is-active", b.dataset.vertical === "all");
-    });
+    syncVerticalButtons();
     $("filter-type").value = "";
     $("filter-city").value = "";
     $("filter-country").value = "";
@@ -1719,13 +1726,14 @@
 
 
   function bind() {
+    syncVerticalButtons();
     document.querySelectorAll("#chips-vertical .chip-vertical").forEach(function (btn) {
       btn.addEventListener("click", function () {
-        document.querySelectorAll("#chips-vertical .chip-vertical").forEach(function (b) {
-          b.classList.remove("is-active");
-        });
-        btn.classList.add("is-active");
-        state.vertical = btn.dataset.vertical;
+        var vertical = btn.dataset.vertical;
+        if (vertical === "all") state.verticals.clear();
+        else if (state.verticals.has(vertical)) state.verticals.delete(vertical);
+        else state.verticals.add(vertical);
+        syncVerticalButtons();
         state.page = 1;
         render();
       });
