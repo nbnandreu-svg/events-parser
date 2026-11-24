@@ -2143,7 +2143,7 @@
     "starts_at": "2026-11-24",
     "ends_at": "2026-11-26",
     "city": "Ашхабад",
-    "country": "",
+    "country": "Туркменистан",
     "vertical": "other",
     "type": "Конференция",
     "date_status": "confirmed",
@@ -2165,33 +2165,47 @@
     ],
     "id": "ev-b6650ff564b85f49",
     "description_source": "https://expoafisha.ru/events/turkmenistan-digital-forum/",
-    "description_checked_at": "2026-11-24T13:08:22+03:00"
+    "description_checked_at": "2026-11-24T13:08:22+03:00",
+    "country_correction": {
+      "previous": "",
+      "basis": "venue_city",
+      "city": "Ашхабад"
+    }
   },
   {
     "title": "Turkmentel 2026",
     "starts_at": "2026-11-24",
-    "ends_at": "2026-11-24",
+    "ends_at": "2026-11-26",
     "city": "Ашхабад",
-    "country": "Россия",
+    "country": "Туркменистан",
     "vertical": "it",
     "type": "Выставка",
     "date_status": "confirmed",
     "organizer_url": "https://ict2go.ru/events/74362",
     "source": "ict2go",
     "description": "Выставка Телеком , 5G , ЦОД , Цифровизация , ИТ-инфраструктура , Сетевые технологии , Искусственный интеллект (ИИ) , Мобильная связь.",
-    "date_evidence": "24.11.2026 | Ашхабад",
+    "date_evidence": "https://www.turkmentel.net/index.php",
     "source_checked_at": "2026-11-24T11:42:36+03:00",
     "audience": "unknown",
-    "translation_status": "unknown",
+    "translation_status": "outside_russia",
     "translation_evidence": [],
-    "international_reason": "Международные признаки в карточке не указаны",
+    "international_reason": "",
     "source_urls": [
       "https://ict2go.ru/events/74362"
     ],
     "sources": [
       "ict2go"
     ],
-    "id": "ev-25924a69e97c3543"
+    "id": "ev-25924a69e97c3543",
+    "country_correction": {
+      "previous": "Россия",
+      "basis": "venue_city",
+      "city": "Ашхабад"
+    },
+    "priority_evidence": {
+      "url": "https://www.turkmentel.net/index.php",
+      "text": "Организатор указывает более 200 экспонентов и более 20 стран."
+    }
   },
   {
     "title": "VIII Агропромышленный форум «Молоко России»",
@@ -5887,7 +5901,7 @@
     "starts_at": "2026-11-25",
     "ends_at": "2026-11-25",
     "city": "Ашхабад",
-    "country": "Россия",
+    "country": "Туркменистан",
     "vertical": "it",
     "type": "Форум",
     "date_status": "confirmed",
@@ -5897,9 +5911,9 @@
     "date_evidence": "25.11.2026 | Ашхабад",
     "source_checked_at": "2026-11-24T11:42:36+03:00",
     "audience": "unknown",
-    "translation_status": "unknown",
+    "translation_status": "outside_russia",
     "translation_evidence": [],
-    "international_reason": "Международные признаки в карточке не указаны",
+    "international_reason": "",
     "source_urls": [
       "https://ict2go.ru/events/66680",
       "https://ict2go.ru/events/66680/"
@@ -5909,7 +5923,12 @@
     ],
     "id": "ev-dd757b9704bc8527",
     "description_source": "https://ict2go.ru/events/66680/",
-    "description_checked_at": "2026-11-24T13:07:48+03:00"
+    "description_checked_at": "2026-11-24T13:07:48+03:00",
+    "country_correction": {
+      "previous": "Россия",
+      "basis": "venue_city",
+      "city": "Ашхабад"
+    }
   },
   {
     "title": "XXIII Форум «Дизайнеры и Архитекторы» 2026",
@@ -10657,43 +10676,23 @@
     "source_checked_at": "2026-11-24T11:42:36+03:00",
     "source_urls": [
       "https://ict.moscow/event/mws-meetup-12-ii-v-inzhenernoi-praktike/",
-      "https://confec.ru/mws-meetup-12-ii-v-inzhenernoy-praktike"
-    ],
-    "sources": [
-      "ict_moscow",
-      "confec_it"
-    ],
-    "audience": "unknown",
-    "translation_status": "online_only",
-    "translation_evidence": [],
-    "international_reason": "Международные признаки в карточке не указаны",
-    "id": "ev-df3702a8f154515d"
-  },
-  {
-    "title": "MWS Meetup #12. ИИ в инженерных практиках",
-    "starts_at": "2026-11-26",
-    "ends_at": "2026-11-26",
-    "city": "Онлайн",
-    "country": "Россия",
-    "vertical": "it",
-    "type": "Конференция",
-    "date_status": "confirmed",
-    "organizer_url": "https://ict2go.ru/events/74418",
-    "source": "ict2go",
-    "description": "Митап Облака , Искусственный интеллект (ИИ) , Kubernetes.",
-    "date_evidence": "26.11.2026 | Онлайн",
-    "source_checked_at": "2026-11-24T11:42:36+03:00",
-    "audience": "unknown",
-    "translation_status": "online_only",
-    "translation_evidence": [],
-    "international_reason": "Международные признаки в карточке не указаны",
-    "source_urls": [
+      "https://confec.ru/mws-meetup-12-ii-v-inzhenernoy-praktike",
       "https://ict2go.ru/events/74418"
     ],
     "sources": [
+      "ict_moscow",
+      "confec_it",
       "ict2go"
     ],
-    "id": "ev-d9b733fe62ae1ad8"
+    "audience": "unknown",
+    "translation_status": "online_only",
+    "translation_evidence": [],
+    "international_reason": "Международные признаки в карточке не указаны",
+    "id": "ev-df3702a8f154515d",
+    "aliases": [
+      "MWS Meetup #12. ИИ в инженерных практиках"
+    ],
+    "language_evidence": []
   },
   {
     "title": "MarProDay: эффективные маркетинговые инструменты",

@@ -8,6 +8,7 @@ import re
 import subprocess
 
 from catalog_core import ROOT, atomic_text, canonical_url, is_hub, same_edition, title_key, today
+from venue_rules import venue_country
 
 
 TOPICS = ('it', 'apk', 'industry')
@@ -54,10 +55,11 @@ def additions(previous, current, topics=TOPICS, as_of=None):
             by_link[link].append(row)
 
     for row in previous:
-        remember(row)
+        remember({**row, 'country': venue_country(row)})
     current_ids = {row['id'] for row in current if row.get('id')}
     result = []
     for row in sorted(current, key=lambda r: (r['starts_at'], r['title'])):
+        row = {**row, 'country': venue_country(row)}
         if row.get('vertical') not in topics or row['ends_at'] < cutoff:
             continue
         if row.get('id') in ids or any(listing_variant(old, row) for old in by_date[row['starts_at']]):
@@ -71,9 +73,24 @@ def additions(previous, current, topics=TOPICS, as_of=None):
                for link in edition_links(row) for old in by_link[link]):
             continue
         result.append({key: row.get(key, '') for key in (
-            'id', 'vertical', 'title', 'starts_at', 'ends_at', 'city', 'country', 'priority_evidence', 'date_status', 'organizer_url')})
+            'id', 'vertical', 'title', 'starts_at', 'ends_at', 'city', 'country', 'priority_evidence',
+            'date_status', 'organizer_url', 'description')})
         remember(row)
     return result
+
+
+def mail_groups(rows, topics=TOPICS):
+    domestic = {topic: [] for topic in topics}
+    foreign = []
+    for row in rows:
+        country = row.get('country')
+        if country in {'Россия', 'РФ', 'RU', 'Russia', 'Russian Federation'}:
+            topic = row.get('vertical')
+            if topic in domestic and len(domestic[topic]) < 6:
+                domestic[topic].append(row)
+        elif country and row.get('priority_evidence'):
+            foreign.append(row)
+    return {'russia': {topic: events for topic, events in domestic.items() if events}, 'abroad': foreign}
 
 
 def write_release(rows, folder):
@@ -92,8 +109,10 @@ if __name__ == '__main__':
     parser.add_argument('--since', required=True)
     parser.add_argument('--until', default='HEAD')
     parser.add_argument('--topics', choices=TOPICS, nargs='+', default=TOPICS)
-    parser.add_argument('--write-release', action='store_true',
-                        help='Publish the selection against the working catalog before committing.')
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument('--write-release', action='store_true',
+                      help='Publish the selection against the working catalog before committing.')
+    mode.add_argument('--mail', action='store_true', help='Group events for the email digest.')
     args = parser.parse_args()
     current = json.loads((ROOT/'events_upcoming.json').read_text(encoding='utf-8')) if args.write_release else snapshot(args.until)
     rows = additions(snapshot(args.since), current, args.topics)
@@ -101,4 +120,4 @@ if __name__ == '__main__':
         key = write_release(rows, ROOT/'releases')
         print(json.dumps({'release':key,'count':len(rows)}))
     else:
-        print(json.dumps(rows, indent=2, ensure_ascii=False))
+        print(json.dumps(mail_groups(rows, args.topics) if args.mail else rows, indent=2, ensure_ascii=False))

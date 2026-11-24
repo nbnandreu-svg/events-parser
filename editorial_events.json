@@ -10,6 +10,14 @@
       "url": "https://bauma-china.com/en/trade-fair/press/press-releases/detail/bauma-china-venue-expansion-shanghai.html"
     },
     {
+      "id": "ev-25924a69e97c3543",
+      "country": "Туркменистан",
+      "starts_at": "2026-11-24",
+      "vertical": "it",
+      "text": "Организатор указывает более 200 экспонентов и более 20 стран.",
+      "url": "https://www.turkmentel.net/index.php"
+    },
+    {
       "id": "ev-d183b04dd81b5572",
       "country": "Узбекистан",
       "starts_at": "2027-04-19",
@@ -18,5 +26,14 @@
       "url": "https://centralasia.biwexpo.com/"
     }
   ],
-  "corrections": []
+  "corrections": [
+    {
+      "ids": ["ev-25924a69e97c3543"],
+      "original_date": "2026-11-24",
+      "starts_at": "2026-11-24",
+      "ends_at": "2026-11-26",
+      "status": "date_corrected",
+      "url": "https://www.turkmentel.net/index.php"
+    }
+  ]
 }

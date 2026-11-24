@@ -69,6 +69,14 @@ def title_match(a, b):
         return a == b and bool(a)
     if a == b:
         return True
+    # Numbered meetups often differ only in how outlets phrase the topic.
+    # Keep each edition distinct and require similar subtitles.
+    numbered = [re.match(r'^(.+?)\s*#\s*(\d+)\b', raw) for raw in (raw_a,raw_b)]
+    if all(numbered):
+        left, right = numbered
+        series = title_key(left[1])
+        if len(series) >= 6 and series == title_key(right[1]):
+            return left[2] == right[2] and SequenceMatcher(None,a,b).ratio() >= .85
     # Require a substantial shared title; never merge only on "форум"/"конференция".
     return min(len(a),len(b)) >= 12 and SequenceMatcher(None,a,b).ratio() >= .93
 
@@ -255,7 +263,7 @@ def prepare_catalog(events):
             if correction['status'] == 'cancelled':
                 removed.append({'reason':'cancelled','event':e})
                 continue
-            if correction['status'] == 'rescheduled':
+            if correction['status'] in {'rescheduled', 'date_corrected'}:
                 e.update(id=original_id, starts_at=correction['starts_at'], ends_at=correction['ends_at'],
                          date_status='confirmed', date_evidence=correction['url'])
         try:
